@@ -123,10 +123,22 @@ $other_party_name = ($_SESSION['role'] == 'patient') ? $appointment['doctor_name
     <div class="chat-container">
         <div class="chat-header" style="display: flex; justify-content: space-between; align-items: center;">
             <span>Chat with <?php echo $other_party_name; ?></span>
-            <a href="video_consultation.php?appointment_id=<?php echo $appointment_id; ?>"
-                style="color: white; text-decoration: none;" title="Start Video Call">
-                <i class="fas fa-video"></i>
-            </a>
+
+            <?php if ($_SESSION['role'] == 'doctor'): ?>
+                <a href="video_consultation.php?appointment_id=<?php echo $appointment_id; ?>"
+                    style="color: white; text-decoration: none;" title="Start Video Call"
+                    onclick="return startCallFromChat(event)">
+                    <i class="fas fa-video"></i>
+                </a>
+            <?php elseif (isset($appointment['is_call_active']) && $appointment['is_call_active']): ?>
+                <a href="video_consultation.php?appointment_id=<?php echo $appointment_id; ?>"
+                    style="color: white; text-decoration: none;" title="Join Video Call">
+                    <i class="fas fa-video"></i>
+                </a>
+            <?php else: ?>
+                <span style="opacity: 0.5; cursor: not-allowed;" title="Waiting for doctor to start call"><i
+                        class="fas fa-video-slash"></i></span>
+            <?php endif; ?>
         </div>
         <div class="chat-messages" id="chatMessages">
             <!-- Messages will be loaded here -->
@@ -211,6 +223,26 @@ $other_party_name = ($_SESSION['role'] == 'patient') ? $appointment['doctor_name
     // Poll for messages every 3 seconds
     setInterval(fetchMessages, 3000);
     fetchMessages(); // Initial load
+
+    function startCallFromChat(e) {
+        // If doctor, we might want to trigger the start call logic implicitly or just let them go to the page
+        // But better to update the status.
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('appointment_id', appointmentId);
+        formData.append('status', 1);
+
+        fetch('toggle_call_status.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = 'video_consultation.php?appointment_id=' + appointmentId;
+                }
+            });
+    }
 </script>
 
 <?php include 'includes/footer.php'; ?>

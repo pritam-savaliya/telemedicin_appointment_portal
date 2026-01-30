@@ -212,11 +212,10 @@ $result = $conn->query($sql);
                                                     </span>
                                                 <?php endif; ?>
                                             </a>
-                                            <a href="video_consultation.php?appointment_id=<?php echo $row['id']; ?>"
-                                                class="btn btn-primary"
+                                            <button onclick="startVideoCall(<?php echo $row['id']; ?>)" class="btn btn-primary"
                                                 style="padding: 8px 16px; font-size: 0.9rem; margin-left: 5px; background-color: #6c5ce7; border-color: #6c5ce7; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px;">
-                                                <i class="fas fa-video"></i> Video
-                                            </a>
+                                                <i class="fas fa-video"></i> Start Call
+                                            </button>
                                             <button onclick="markComplete(<?php echo $row['id']; ?>)" class="btn btn-primary"
                                                 style="padding: 8px 16px; font-size: 0.9rem; margin-left: 5px; background-color: var(--primary-color); position: relative; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px;">
                                                 <i class="fas fa-check"></i> Done
@@ -248,6 +247,25 @@ $result = $conn->query($sql);
 </div>
 
 <script>
+    function startVideoCall(id) {
+        const formData = new FormData();
+        formData.append('appointment_id', id);
+        formData.append('status', 1); // Set active
+
+        fetch('toggle_call_status.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = 'video_consultation.php?appointment_id=' + id;
+                } else {
+                    alert('Error starting call: ' + data.message);
+                }
+            });
+    }
+
     function markComplete(id) {
         if (confirm('Are you sure you want to mark this treatment/appointment as completed?')) {
             const formData = new FormData();

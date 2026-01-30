@@ -98,16 +98,39 @@ $user_name = $_SESSION['fullname'];
             <i class="fas fa-video"></i> Consultation with
             <?php echo ($_SESSION['role'] == 'patient') ? 'Dr. ' . $appointment['doctor_name'] : $appointment['patient_name']; ?>
         </div>
-        <a href="<?php echo ($_SESSION['role'] == 'doctor') ? 'doctor_dashboard.php' : 'patient_dashboard.php'; ?>"
-            class="btn-close">
-            <i class="fas fa-sign-out-alt"></i> End Call & Return
-        </a>
+        <?php if ($_SESSION['role'] == 'doctor'): ?>
+            <button onclick="endCall()" class="btn-close">
+                <i class="fas fa-sign-out-alt"></i> End Call
+            </button>
+        <?php else: ?>
+            <a href="patient_dashboard.php" class="btn-close">
+                <i class="fas fa-sign-out-alt"></i> Leave Call
+            </a>
+        <?php endif; ?>
     </div>
 
     <div id="meet"></div>
 
     <script src='https://meet.jit.si/external_api.js'></script>
     <script>
+        const appointmentId = <?php echo $appointment_id; ?>;
+
+        function endCall() {
+            if (confirm("Are you sure you want to end this consultation? This will close the room for the patient too.")) {
+                const formData = new FormData();
+                formData.append('appointment_id', appointmentId);
+                formData.append('status', 0); // Set inactive
+
+                fetch('toggle_call_status.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        window.location.href = 'doctor_dashboard.php';
+                    });
+            }
+        }
         const domain = 'meet.jit.si';
         const options = {
             roomName: '<?php echo $room_name; ?>',

@@ -171,11 +171,18 @@ $chat_result = $conn->query($chat_sql);
                                         </span>
                                     <?php endif; ?>
                                 </a>
-                                <a href="video_consultation.php?appointment_id=<?php echo $appt['id']; ?>"
-                                    class="btn btn-primary"
-                                    style="padding: 8px 15px; border-radius: 8px; background-color: #6c5ce7; border-color: #6c5ce7;">
-                                    <i class="fas fa-video"></i> Video
-                                </a>
+                                <?php if (isset($appt['is_call_active']) && $appt['is_call_active']): ?>
+                                    <a href="video_consultation.php?appointment_id=<?php echo $appt['id']; ?>"
+                                        class="btn btn-primary"
+                                        style="padding: 8px 15px; border-radius: 8px; background-color: #6c5ce7; border-color: #6c5ce7;">
+                                        <i class="fas fa-video"></i> Join Call
+                                    </a>
+                                <?php else: ?>
+                                    <button disabled class="btn"
+                                        style="padding: 8px 15px; border-radius: 8px; background-color: #e0e0e0; color: #999; border: 1px solid #ccc; cursor: not-allowed;">
+                                        <i class="fas fa-video-slash"></i> Waiting for Doctor
+                                    </button>
+                                <?php endif; ?>
                             </div>
                         </div>
                     <?php endwhile; ?>
