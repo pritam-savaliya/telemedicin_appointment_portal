@@ -31,11 +31,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $message = "<div class='alert-error'>Email already registered!</div>";
         } else {
             // Insert User
-            $sql = "INSERT INTO users (fullname, email, password, role) VALUES ('$fullname', '$email', '$hashed_password', '$role')";
+            $is_approved = ($role === 'patient') ? 1 : 0;
+            $sql = "INSERT INTO users (fullname, email, password, role, is_approved) VALUES ('$fullname', '$email', '$hashed_password', '$role', $is_approved)";
 
             if ($conn->query($sql) === TRUE) {
                 // Redirect to login
-                header("Location: login.php?success=1");
+                $redirect_code = ($role === 'doctor') ? 2 : 1;
+                header("Location: login.php?success=$redirect_code");
                 exit();
             } else {
                 $message = "Error: " . $conn->error;

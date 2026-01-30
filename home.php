@@ -25,19 +25,19 @@
             <i class="fas fa-video feature-icon"></i>
             <h3>Video Consultation</h3>
             <p>Connect with doctors instantly via secure video calls. No waiting rooms, just quality care.</p>
-            <a href="book_appointment.php" style="color: var(--primary-color); font-weight: 600;">Consult Now &rarr;</a>
+            <a href="book_appointment.php" class="btn btn-outline">Consult Now &rarr;</a>
         </div>
         <div class="feature-card">
             <i class="fas fa-calendar-alt feature-icon"></i>
             <h3>Clinic Visits</h3>
             <p>Book appointments at preferred clinics or hospitals with your favorite specialists.</p>
-            <a href="book_appointment.php" style="color: var(--primary-color); font-weight: 600;">Book Visit &rarr;</a>
+            <a href="book_appointment.php" class="btn btn-outline">Book Visit &rarr;</a>
         </div>
         <div class="feature-card">
             <i class="fas fa-pills feature-icon"></i>
             <h3>Medicine Delivery</h3>
             <p>Upload your prescription and get medicines delivered right to your doorstep fast.</p>
-            <a href="order_medicine.php" style="color: var(--primary-color); font-weight: 600;">Order Now &rarr;</a>
+            <a href="order_medicine.php" class="btn btn-outline">Order Now &rarr;</a>
         </div>
     </div>
 </section>

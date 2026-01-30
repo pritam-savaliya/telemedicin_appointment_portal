@@ -4,7 +4,11 @@ session_start();
 
 $message = "";
 if (isset($_GET['success'])) {
-    $message = "<div class='alert-success'>Registration successful! Please login.</div>";
+    if ($_GET['success'] == 1) {
+        $message = "<div class='alert-success'>Registration successful! Please login.</div>";
+    } elseif ($_GET['success'] == 2) {
+        $message = "<div class='alert-success'>Registration successful! Please wait for admin approval.</div>";
+    }
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -15,26 +19,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!isset($_SESSION['captcha_code']) || $captcha !== $_SESSION['captcha_code']) {
         $message = "<div class='alert-error'>Invalid Captcha Code</div>";
     } else {
-        $sql = "SELECT id, fullname, role, password FROM users WHERE email = '$email'";
+        $sql = "SELECT id, fullname, role, password, is_approved FROM users WHERE email = '$email'";
         $result = $conn->query($sql);
 
         if ($result->num_rows == 1) {
             $row = $result->fetch_assoc();
             if (password_verify($password, $row['password'])) {
-                // Password correct
-                $_SESSION['user_id'] = $row['id'];
-                $_SESSION['fullname'] = $row['fullname'];
-                $_SESSION['role'] = $row['role'];
-
-                // Redirect based on role
-                if ($row['role'] == 'admin') {
-                    header("Location: admin_dashboard.php?msg=login_success");
-                } elseif ($row['role'] == 'patient') {
-                    header("Location: patient_dashboard.php?msg=login_success");
+                if ($row['is_approved'] == 0) {
+                    $message = "<div class='alert-error'>Your account is pending approval by the admin.</div>";
                 } else {
-                    header("Location: doctor_dashboard.php?msg=login_success");
+                    // Password correct
+                    $_SESSION['user_id'] = $row['id'];
+                    $_SESSION['fullname'] = $row['fullname'];
+                    $_SESSION['role'] = $row['role'];
+
+                    // Redirect based on role
+                    if ($row['role'] == 'admin') {
+                        header("Location: admin_dashboard.php?msg=login_success");
+                    } elseif ($row['role'] == 'patient') {
+                        header("Location: patient_dashboard.php?msg=login_success");
+                    } else {
+                        header("Location: doctor_dashboard.php?msg=login_success");
+                    }
+                    exit();
                 }
-                exit();
             } else {
                 $message = "<div class='alert-error'>Invalid password.</div>";
             }

@@ -64,11 +64,27 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete_user' && isset($_GET['i
     } else {
         $message = "You cannot delete yourself!";
     }
+
+}
+
+// Handle Approve User
+if (isset($_GET['action']) && $_GET['action'] == 'approve_user' && isset($_GET['id'])) {
+    $approve_id = intval($_GET['id']);
+    if ($conn->query("UPDATE users SET is_approved = 1 WHERE id = $approve_id") === TRUE) {
+        header("Location: admin_dashboard.php?msg=approved");
+        exit();
+    } else {
+        $message = "Error approving user: " . $conn->error;
+    }
 }
 
 // Check for delete success message
-if (isset($_GET['msg']) && $_GET['msg'] == 'deleted') {
-    $message = "<span style='color:green'>User deleted successfully!</span>";
+if (isset($_GET['msg'])) {
+    if ($_GET['msg'] == 'deleted') {
+        $message = "<span style='color:green'>User deleted successfully!</span>";
+    } elseif ($_GET['msg'] == 'approved') {
+        $message = "<span style='color:green'>User approved successfully!</span>";
+    }
 }
 
 // Fetch all users
@@ -215,10 +231,17 @@ $stats_pending = $conn->query("SELECT COUNT(*) as c FROM appointments WHERE stat
                         echo "<td style='padding: 15px; border-bottom: 1px solid #eee; font-weight: bold; color: #aaa;'>#" . $row['id'] . "</td>";
                         echo "<td style='padding: 15px; border-bottom: 1px solid #eee;'>" . $row['fullname'] . "</td>";
                         echo "<td style='padding: 15px; border-bottom: 1px solid #eee;'>" . $row['email'] . "</td>";
-                        echo "<td style='padding: 15px; border-bottom: 1px solid #eee;'><span style='background: $role_badge_bg; color: $role_badge_color; padding: 5px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;'>" . $row['role'] . "</span></td>";
+                        echo "<td style='padding: 15px; border-bottom: 1px solid #eee;'><span style='background: $role_badge_bg; color: $role_badge_color; padding: 5px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase;'>" . $row['role'] . "</span>";
+                        if ($row['is_approved'] == 0) {
+                            echo " <span style='background: #ffeaa7; color: #d63031; padding: 2px 6px; border-radius: 8px; font-size: 0.7rem; font-weight: bold;'>PENDING</span>";
+                        }
+                        echo "</td>";
                         echo "<td style='padding: 15px; border-bottom: 1px solid #eee; color: var(--text-muted); font-size: 0.9rem;'>" . date('M d, Y', strtotime($row['created_at'])) . "</td>";
                         echo "<td style='padding: 15px; border-bottom: 1px solid #eee;'>";
                         if ($row['id'] != $_SESSION['user_id']) {
+                            if ($row['is_approved'] == 0) {
+                                echo "<a href='admin_dashboard.php?action=approve_user&id=" . $row['id'] . "' style='color: var(--success-color); text-decoration: none; padding: 5px; transition: color 0.2s;' title='Approve User'><i class='fas fa-check-circle'></i></a> ";
+                            }
                             echo "<a href='admin_dashboard.php?action=delete_user&id=" . $row['id'] . "' onclick='return confirm(\"Are you sure?\");' style='color: #ff7675; text-decoration: none; padding: 5px; transition: color 0.2s;' title='Delete User'><i class='fas fa-trash-alt'></i></a>";
                         } else {
                             echo "<span style='color: #bbb; font-size: 0.8rem;'>Me</span>";
