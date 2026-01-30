@@ -121,9 +121,12 @@ $other_party_name = ($_SESSION['role'] == 'patient') ? $appointment['doctor_name
 
 <div class="container" style="padding-top: 4rem;">
     <div class="chat-container">
-        <div class="chat-header">
-            Chat with
-            <?php echo $other_party_name; ?>
+        <div class="chat-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Chat with <?php echo $other_party_name; ?></span>
+            <a href="video_consultation.php?appointment_id=<?php echo $appointment_id; ?>"
+                style="color: white; text-decoration: none;" title="Start Video Call">
+                <i class="fas fa-video"></i>
+            </a>
         </div>
         <div class="chat-messages" id="chatMessages">
             <!-- Messages will be loaded here -->

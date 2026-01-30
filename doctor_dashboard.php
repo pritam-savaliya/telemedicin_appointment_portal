@@ -212,6 +212,11 @@ $result = $conn->query($sql);
                                                     </span>
                                                 <?php endif; ?>
                                             </a>
+                                            <a href="video_consultation.php?appointment_id=<?php echo $row['id']; ?>"
+                                                class="btn btn-primary"
+                                                style="padding: 8px 16px; font-size: 0.9rem; margin-left: 5px; background-color: #6c5ce7; border-color: #6c5ce7; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px;">
+                                                <i class="fas fa-video"></i> Video
+                                            </a>
                                             <button onclick="markComplete(<?php echo $row['id']; ?>)" class="btn btn-primary"
                                                 style="padding: 8px 16px; font-size: 0.9rem; margin-left: 5px; background-color: var(--primary-color); position: relative; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px;">
                                                 <i class="fas fa-check"></i> Done

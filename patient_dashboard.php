@@ -160,16 +160,23 @@ $chat_result = $conn->query($chat_sql);
                                         <?php echo date("h:i A", strtotime($appt['time'])); ?></span>
                                 </div>
                             </div>
-                            <a href="chat.php?appointment_id=<?php echo $appt['id']; ?>" class="btn btn-primary"
-                                style="padding: 8px 15px; border-radius: 8px; position: relative;">
-                                <i class="fas fa-paper-plane"></i> Chat
-                                <?php if ($appt['unread_msgs'] > 0): ?>
-                                    <span
-                                        style="position: absolute; top: -8px; right: -8px; background: var(--danger-color); color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                        <?php echo $appt['unread_msgs']; ?>
-                                    </span>
-                                <?php endif; ?>
-                            </a>
+                            <div style="display: flex; gap: 10px;">
+                                <a href="chat.php?appointment_id=<?php echo $appt['id']; ?>" class="btn btn-primary"
+                                    style="padding: 8px 15px; border-radius: 8px; position: relative;">
+                                    <i class="fas fa-paper-plane"></i> Chat
+                                    <?php if ($appt['unread_msgs'] > 0): ?>
+                                        <span
+                                            style="position: absolute; top: -8px; right: -8px; background: var(--danger-color); color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                            <?php echo $appt['unread_msgs']; ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </a>
+                                <a href="video_consultation.php?appointment_id=<?php echo $appt['id']; ?>"
+                                    class="btn btn-primary"
+                                    style="padding: 8px 15px; border-radius: 8px; background-color: #6c5ce7; border-color: #6c5ce7;">
+                                    <i class="fas fa-video"></i> Video
+                                </a>
+                            </div>
                         </div>
                     <?php endwhile; ?>
                 </div>
