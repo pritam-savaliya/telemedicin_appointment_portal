@@ -51,10 +51,31 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete_user' && isset($_GET['i
 
     // Prevent deleting self
     if ($delete_id != $_SESSION['user_id']) {
-        // First delete related appointments to avoid foreign key constraints
+        // 1. Delete Chat Messages (linked to appointments OR sent by user)
+        // Get all appointment IDs involving this user
+        $get_appts = $conn->query("SELECT id FROM appointments WHERE patient_id = $delete_id OR doctor_id = $delete_id");
+        $appt_ids = [];
+        if ($get_appts) {
+            while ($row = $get_appts->fetch_assoc()) {
+                $appt_ids[] = $row['id'];
+            }
+        }
+
+        if (!empty($appt_ids)) {
+            $ids_str = implode(',', $appt_ids);
+            // Delete messages in those appointments
+            $conn->query("DELETE FROM chat_messages WHERE appointment_id IN ($ids_str)");
+        }
+        // Also delete messages sent by user
+        $conn->query("DELETE FROM chat_messages WHERE sender_id = $delete_id");
+
+        // 2. Delete Notifications
+        $conn->query("DELETE FROM notifications WHERE user_id = $delete_id");
+
+        // 3. Delete Appointments
         $conn->query("DELETE FROM appointments WHERE patient_id = $delete_id OR doctor_id = $delete_id");
 
-        // Delete user
+        // 4. Delete user
         if ($conn->query("DELETE FROM users WHERE id = $delete_id") === TRUE) {
             header("Location: admin_dashboard.php?msg=deleted");
             exit();

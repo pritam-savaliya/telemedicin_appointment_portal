@@ -1,5 +1,13 @@
 <?php include 'includes/header.php'; ?>
 
+<?php if (isset($_GET['msg']) && $_GET['msg'] == 'appointment_booked'): ?>
+    <div style="max-width: 1200px; margin: 20px auto; padding: 0 20px;">
+        <div class="alert-success">
+            <i class="fas fa-check-circle"></i> Appointment Booked Successfully! We look forward to seeing you.
+        </div>
+    </div>
+<?php endif; ?>
+
 <!-- Hero Section -->
 <section class="hero">
     <div class="hero-content">

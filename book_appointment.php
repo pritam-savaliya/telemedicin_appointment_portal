@@ -23,7 +23,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $sql = "INSERT INTO appointments (patient_id, doctor_id, date, time) VALUES ('$patient_id', '$doctor_id', '$date', '$time')";
 
         if ($conn->query($sql) === TRUE) {
-            $message = "<div style='background: #ddffdd; color: green; padding: 10px; margin-bottom: 10px; border-radius: 5px;'>Appointment Booked Successfully! <a href='my_appointments.php'>View Status</a></div>";
+            header("Location: home.php?msg=appointment_booked");
+            exit();
         } else {
             $message = "<div style='background: #ffdddd; color: red; padding: 10px; margin-bottom: 10px; border-radius: 5px;'>Error: " . $conn->error . "</div>";
         }
