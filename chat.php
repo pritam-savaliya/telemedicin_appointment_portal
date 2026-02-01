@@ -34,118 +34,211 @@ $other_party_name = ($_SESSION['role'] == 'patient') ? $appointment['doctor_name
 <?php include 'includes/header.php'; ?>
 
 <style>
-    .chat-container {
+    .chat-layout {
         display: flex;
         flex-direction: column;
-        height: 70vh;
-        max-width: 800px;
-        margin: 2rem auto;
+        height: 75vh;
+        max-width: 900px;
+        margin: 0 auto;
         background: white;
-        border-radius: 10px;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
         overflow: hidden;
     }
 
     .chat-header {
-        background: var(--primary-color);
-        color: white;
-        padding: 1rem;
-        font-weight: bold;
+        background: var(--surface-color);
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .chat-header h3 {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        background: var(--success-color);
+        border-radius: 50%;
+        display: inline-block;
     }
 
     .chat-messages {
         flex: 1;
-        padding: 1rem;
+        padding: 2rem;
         overflow-y: auto;
-        background: #f9f9f9;
+        background: #F9FAFB;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 20px;
     }
 
     .message {
+        display: flex;
+        flex-direction: column;
         max-width: 70%;
-        padding: 10px 15px;
-        border-radius: 20px;
-        font-size: 0.95rem;
         position: relative;
     }
 
     .message.sent {
         align-self: flex-end;
-        background: var(--primary-color);
-        color: white;
-        border-bottom-right-radius: 5px;
+        align-items: flex-end;
     }
 
     .message.received {
         align-self: flex-start;
-        background: #e9e9eb;
-        color: black;
-        border-bottom-left-radius: 5px;
+        align-items: flex-start;
     }
 
-    .chat-input {
-        padding: 1rem;
-        background: white;
-        border-top: 1px solid #ddd;
-        display: flex;
-        gap: 10px;
+    .message-bubble {
+        padding: 12px 20px;
+        border-radius: 18px;
+        font-size: 1rem;
+        line-height: 1.5;
+        position: relative;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     }
 
-    .chat-input input {
-        flex: 1;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 20px;
-        outline: none;
-    }
-
-    .chat-input button {
-        padding: 10px 20px;
+    .message.sent .message-bubble {
         background: var(--primary-color);
         color: white;
-        border: none;
-        border-radius: 20px;
-        cursor: pointer;
+        border-bottom-right-radius: 4px;
+    }
+
+    .message.received .message-bubble {
+        background: white;
+        color: var(--text-main);
+        border: 1px solid #e0e0e0;
+        border-bottom-left-radius: 4px;
     }
 
     .message-time {
-        font-size: 0.7rem;
-        opacity: 0.7;
+        font-size: 0.75rem;
+        color: var(--text-muted);
         margin-top: 5px;
-        display: block;
-        text-align: right;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .chat-input-area {
+        padding: 1.5rem;
+        background: white;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .chat-input-area input {
+        flex: 1;
+        padding: 15px 20px;
+        border: 1px solid #e0e0e0;
+        border-radius: 30px;
+        outline: none;
+        font-family: var(--font-body);
+        transition: var(--transition-smooth);
+        background: #f8f9fa;
+    }
+
+    .chat-input-area input:focus {
+        background: white;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+    }
+
+    .btn-send {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition-smooth);
+        box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+    }
+
+    .btn-send:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(108, 92, 231, 0.4);
+    }
+
+    /* Scrollbar Styling */
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 10px;
     }
 </style>
 
-<div class="container" style="padding-top: 4rem;">
-    <div class="chat-container">
-        <div class="chat-header" style="display: flex; justify-content: space-between; align-items: center;">
-            <span>Chat with <?php echo $other_party_name; ?></span>
+<div class="container section">
+    <div class="chat-layout">
+        <div class="chat-header">
+            <h3>
+                <div
+                    style="background: rgba(0, 184, 148, 0.1); width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--success-color);">
+                    <i class="fas fa-user-circle" style="font-size: 1.5rem;"></i>
+                </div>
+                <div>
+                    <?php echo $other_party_name; ?>
+                    <span
+                        style="display: block; font-size: 0.8rem; color: var(--success-color); font-weight: normal; margin-top: 2px;">
+                        <span class="status-dot"></span> Online for Consultation
+                    </span>
+                </div>
+            </h3>
 
             <?php if ($_SESSION['role'] == 'doctor'): ?>
-                <a href="video_consultation.php?appointment_id=<?php echo $appointment_id; ?>"
-                    style="color: white; text-decoration: none;" title="Start Video Call"
+                <a href="video_consultation.php?appointment_id=<?php echo $appointment_id; ?>" class="btn btn-primary"
                     onclick="return startCallFromChat(event)">
-                    <i class="fas fa-video"></i>
+                    <i class="fas fa-video"></i> Start Video Call
                 </a>
             <?php elseif (isset($appointment['is_call_active']) && $appointment['is_call_active']): ?>
-                <a href="video_consultation.php?appointment_id=<?php echo $appointment_id; ?>"
-                    style="color: white; text-decoration: none;" title="Join Video Call">
-                    <i class="fas fa-video"></i>
+                <a href="video_consultation.php?appointment_id=<?php echo $appointment_id; ?>" class="btn btn-primary"
+                    style="background: #6c5ce7; animation: pulse 2s infinite;">
+                    <i class="fas fa-video"></i> Join Video Call
                 </a>
             <?php else: ?>
-                <span style="opacity: 0.5; cursor: not-allowed;" title="Waiting for doctor to start call"><i
-                        class="fas fa-video-slash"></i></span>
+                <button class="btn btn-outline" disabled title="Waiting for doctor to start call">
+                    <i class="fas fa-video-slash"></i> Video Call
+                </button>
             <?php endif; ?>
         </div>
+
         <div class="chat-messages" id="chatMessages">
-            <!-- Messages will be loaded here -->
+            <!-- Messages loaded via JS -->
+            <div style="text-align: center; color: var(--text-muted); margin-top: 2rem;">
+                <i class="fas fa-spinner fa-spin"></i> Loading conversation...
+            </div>
         </div>
-        <div class="chat-input">
-            <input type="text" id="messageInput" placeholder="Type a message...">
-            <button onclick="sendMessage()">Send</button>
+
+        <div class="chat-input-area">
+            <button class="btn btn-outline"
+                style="width: 40px; height: 40px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; border: none; background: #f0f0f0; color: #777;">
+                <i class="fas fa-paperclip"></i>
+            </button>
+            <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+            <button class="btn-send" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
         </div>
     </div>
 </div>
@@ -161,6 +254,9 @@ $other_party_name = ($_SESSION['role'] == 'patient') ? $appointment['doctor_name
             .then(data => {
                 if (data.status === 'success') {
                     chatBox.innerHTML = '';
+                    if (data.messages.length === 0) {
+                        chatBox.innerHTML = '<div style="text-align: center; color: var(--text-muted); margin-top: 2rem;">No messages yet. Start the conversation!</div>';
+                    }
                     data.messages.forEach(msg => {
                         const div = document.createElement('div');
                         const isSent = msg.sender_id == currentUserId;
@@ -169,18 +265,20 @@ $other_party_name = ($_SESSION['role'] == 'patient') ? $appointment['doctor_name
                         let statusIcon = '';
                         if (isSent) {
                             if (msg.is_read == 1) {
-                                statusIcon = '<i class="fas fa-check-double" style="color: #64ffda; margin-left: 5px; font-size: 0.7rem;"></i>'; // Seen
+                                statusIcon = '<i class="fas fa-check-double" style="color: var(--primary-color);"></i>';
                             } else {
-                                statusIcon = '<i class="fas fa-check" style="color: rgba(255,255,255,0.7); margin-left: 5px; font-size: 0.7rem;"></i>'; // Sent
+                                statusIcon = '<i class="fas fa-check"></i>';
                             }
                         }
 
                         div.innerHTML = `
-                            ${msg.message} 
-                            <span class="message-time">
+                            <div class="message-bubble">
+                                ${msg.message}
+                            </div>
+                            <div class="message-time">
                                 ${msg.formatted_time}
                                 ${statusIcon}
-                            </span>`;
+                            </div>`;
                         chatBox.appendChild(div);
                     });
                     // Auto scroll to bottom
@@ -225,8 +323,6 @@ $other_party_name = ($_SESSION['role'] == 'patient') ? $appointment['doctor_name
     fetchMessages(); // Initial load
 
     function startCallFromChat(e) {
-        // If doctor, we might want to trigger the start call logic implicitly or just let them go to the page
-        // But better to update the status.
         e.preventDefault();
         const formData = new FormData();
         formData.append('appointment_id', appointmentId);

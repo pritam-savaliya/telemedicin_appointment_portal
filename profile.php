@@ -15,44 +15,58 @@ $user = $result->fetch_assoc();
 
 <?php include 'includes/header.php'; ?>
 
-<div class="auth-wrapper">
-    <div class="auth-container" style="max-width: 600px; text-align: left;">
-        <h2 style="text-align: center; margin-bottom: 2rem;">My Profile</h2>
-
-        <div style="display: flex; gap: 20px; align-items: center; justify-content: center; margin-bottom: 2rem;">
+<div class="auth-wrapper" style="padding-top: 4rem;">
+    <div class="auth-card" style="max-width: 500px;">
+        <div style="text-align: center; margin-bottom: 2rem; position: relative;">
             <div
-                style="width: 100px; height: 100px; background: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: #555;">
-                <i class="fas fa-user"></i>
+                style="width: 120px; height: 120px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; border: 4px solid white; box-shadow: var(--shadow-md);">
+                <i class="fas fa-user" style="font-size: 3rem; color: #ccc;"></i>
             </div>
-            <div style="margin-left: 20px;">
-                <a href="edit_profile.php" class="btn btn-outline" style="padding: 5px 15px; font-size: 0.9rem;">Edit
-                    Profile</a>
+            <h2 style="margin-top: 15px; margin-bottom: 5px;"><?php echo $user['fullname']; ?></h2>
+            <span class="badge"
+                style="background: var(--primary-light); color: var(--primary-dark); font-size: 0.9rem;">
+                <?php echo ucfirst($user['role']); ?>
+            </span>
+        </div>
+
+        <div style="background: #f8f9fa; padding: 25px; border-radius: var(--radius-md); margin-bottom: 30px;">
+            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                <div style="width: 40px; text-align: center; color: var(--primary-color);"><i
+                        class="fas fa-envelope"></i></div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block;">Email Address</label>
+                    <span style="font-weight: 500;"><?php echo $user['email']; ?></span>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <div style="width: 40px; text-align: center; color: var(--primary-color);"><i
+                        class="fas fa-calendar-alt"></i></div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block;">Joined On</label>
+                    <span style="font-weight: 500;"><?php echo date("F j, Y", strtotime($user['created_at'])); ?></span>
+                </div>
             </div>
         </div>
 
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
-            <p><strong>Full Name:</strong>
-                <?php echo $user['fullname']; ?>
-            </p>
-            <p><strong>Email Address:</strong>
-                <?php echo $user['email']; ?>
-            </p>
-            <p><strong>Role:</strong> <span
-                    style="text-transform: capitalize; color: var(--primary-color); font-weight: bold;">
-                    <?php echo $user['role']; ?>
-                </span></p>
-            <p><strong>Member Since:</strong>
-                <?php echo date("F j, Y", strtotime($user['created_at'])); ?>
-            </p>
-        </div>
-
-        <div style="text-align: center; margin-top: 2rem;">
+        <div style="display: grid; gap: 10px;">
             <?php if ($user['role'] == 'patient'): ?>
-                <a href="patient_dashboard.php" class="btn btn-primary">Go to Dashboard</a>
+                <a href="patient_dashboard.php" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    <i class="fas fa-columns" style="margin-right: 8px;"></i> Dashboard
+                </a>
+            <?php elseif ($user['role'] == 'doctor'): ?>
+                <a href="doctor_dashboard.php" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    <i class="fas fa-columns" style="margin-right: 8px;"></i> Dashboard
+                </a>
             <?php else: ?>
-                <a href="doctor_dashboard.php" class="btn btn-primary">Go to Dashboard</a>
+                <a href="admin_dashboard.php" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    <i class="fas fa-columns" style="margin-right: 8px;"></i> Dashboard
+                </a>
             <?php endif; ?>
-            <a href="logout.php" class="btn btn-outline" style="margin-left: 10px;">Logout</a>
+
+            <a href="logout.php" class="btn btn-outline"
+                style="width: 100%; justify-content: center; color: var(--danger-color); border-color: var(--danger-color);">
+                <i class="fas fa-sign-out-alt" style="margin-right: 8px;"></i> Logout
+            </a>
         </div>
     </div>
 </div>

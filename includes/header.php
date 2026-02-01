@@ -34,61 +34,23 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
 
     <?php if (!isset($hide_header) || !$hide_header): ?>
         <header>
-            <div class="navbar">
+            <div class="container navbar">
                 <div class="logo">
                     <a href="<?php echo $home_url; ?>">
-                        <i class="fas fa-heartbeat" style="color: var(--success-color);"></i> TeleMed
+                        <i class="fas fa-heartbeat"></i> TeleMed
                     </a>
                 </div>
                 <nav class="nav-links">
-                    <?php
-                    // Initial load count (PHP Fallback)
-                    $unread_count = 0;
-                    if (isset($_SESSION['user_id'])) {
-                        $u_id = $_SESSION['user_id'];
-                        $count_sql = "SELECT COUNT(*) as count 
-                                  FROM chat_messages 
-                                  JOIN appointments ON chat_messages.appointment_id = appointments.id 
-                                  WHERE chat_messages.is_read = 0 
-                                  AND chat_messages.sender_id != $u_id 
-                                  AND (appointments.patient_id = $u_id OR appointments.doctor_id = $u_id)";
-                        $c_res = $conn->query($count_sql);
-                        if ($c_res) {
-                            $unread_count = $c_res->fetch_assoc()['count'];
-                        }
-                    }
-                    ?>
                     <a href="<?php echo $home_url; ?>"
                         class="<?php echo $current_page == 'home.php' || $current_page == basename($home_url) ? 'active' : ''; ?>">
                         Home
-                        <span id="unread-badge"
-                            style="background: var(--danger-color); color: white; font-size: 0.7rem; padding: 2px 6px; border-radius: 50%; vertical-align: top; margin-left: 2px; display: <?php echo $unread_count > 0 ? 'inline-block' : 'none'; ?>;">
-                            <?php echo $unread_count; ?>
-                        </span>
+                        <span id="unread-badge" class="badge badge-danger"
+                            style="font-size: 0.6rem; vertical-align: top; margin-left: 5px; display: none;">0</span>
                     </a>
                     <a href="about.php" class="<?php echo $current_page == 'about.php' ? 'active' : ''; ?>">About Us</a>
-                    <?php
-                    // Initial load count (PHP Fallback)
-                    $unread_count = 0;
-                    if (isset($_SESSION['user_id'])) {
-                        $u_id = $_SESSION['user_id'];
-                        $count_sql = "SELECT COUNT(*) as count 
-                                  FROM chat_messages 
-                                  JOIN appointments ON chat_messages.appointment_id = appointments.id 
-                                  WHERE chat_messages.is_read = 0 
-                                  AND chat_messages.sender_id != $u_id 
-                                  AND (appointments.patient_id = $u_id OR appointments.doctor_id = $u_id)";
-                        $c_res = $conn->query($count_sql);
-                        if ($c_res) {
-                            $unread_count = $c_res->fetch_assoc()['count'];
-                        }
-                    }
-                    ?>
-
-
                     <a href="contact.php" class="<?php echo $current_page == 'contact.php' ? 'active' : ''; ?>">Contact</a>
                 </nav>
-                <div class="auth-buttons" style="display: flex; gap: 10px;">
+                <div class="auth-buttons" style="display: flex; gap: 15px; align-items: center;">
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <script>
                             // Real-time notification polling
@@ -109,14 +71,14 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
                                     .catch(err => console.error('Error fetching notifications:', err));
                             }, 3000); // Check every 3 seconds
                         </script>
-                        <a href="profile.php" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                            <i class="fas fa-user-circle"></i> <?php echo explode(' ', $_SESSION['fullname'])[0]; ?>
+                        <a href="profile.php" class="btn btn-secondary" style="padding: 0.6rem 1.2rem;">
+                            <i class="fas fa-user-circle"></i> Profile
                         </a>
-                        <a href="logout.php" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                        <a href="logout.php" class="btn btn-primary" style="padding: 0.6rem 1.2rem;">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </a>
                     <?php else: ?>
-                        <a href="login.php" class="btn btn-outline">Login</a>
+                        <a href="login.php" class="btn btn-secondary">Login</a>
                         <a href="register.php" class="btn btn-primary">Sign Up</a>
                     <?php endif; ?>
                 </div>

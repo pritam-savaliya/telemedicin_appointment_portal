@@ -40,6 +40,7 @@ $user_name = $_SESSION['fullname'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Video Consultation - Telemedicine</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
     <style>
         body,
         html {
@@ -47,7 +48,7 @@ $user_name = $_SESSION['fullname'];
             padding: 0;
             height: 100%;
             overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #000;
         }
 
         #meet {
@@ -55,55 +56,81 @@ $user_name = $_SESSION['fullname'];
             height: 100%;
         }
 
-        .header-bar {
+        .video-header {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background: rgba(0, 0, 0, 0.7);
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 1200px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 20px;
-            box-sizing: border-box;
+            padding: 0 30px;
             z-index: 10;
             color: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .btn-close {
+        .consultation-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .btn-end-call {
             background: #ff4757;
             color: white;
             border: none;
-            padding: 8px 20px;
-            border-radius: 20px;
+            padding: 10px 25px;
+            border-radius: 30px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
             text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
         }
 
-        .btn-close:hover {
+        .btn-end-call:hover {
+            transform: translateY(-2px);
             background: #ff6b81;
+            box-shadow: 0 6px 20px rgba(255, 71, 87, 0.6);
         }
     </style>
 </head>
 
 <body>
 
-    <div class="header-bar">
-        <div>
-            <i class="fas fa-video"></i> Consultation with
-            <?php echo ($_SESSION['role'] == 'patient') ? 'Dr. ' . $appointment['doctor_name'] : $appointment['patient_name']; ?>
+    <div class="video-header">
+        <div class="consultation-info">
+            <div
+                style="width: 40px; height: 40px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-video"></i>
+            </div>
+            <div>
+                Consultation with
+                <span style="color: var(--accent-color);">
+                    <?php echo ($_SESSION['role'] == 'patient') ? 'Dr. ' . $appointment['doctor_name'] : $appointment['patient_name']; ?>
+                </span>
+            </div>
         </div>
+
         <?php if ($_SESSION['role'] == 'doctor'): ?>
-            <button onclick="endCall()" class="btn-close">
-                <i class="fas fa-sign-out-alt"></i> End Call
+            <button onclick="endCall()" class="btn-end-call">
+                <i class="fas fa-phone-slash"></i> End Call
             </button>
         <?php else: ?>
-            <a href="patient_dashboard.php" class="btn-close">
+            <a href="patient_dashboard.php" class="btn-end-call">
                 <i class="fas fa-sign-out-alt"></i> Leave Call
             </a>
         <?php endif; ?>
@@ -142,18 +169,17 @@ $user_name = $_SESSION['fullname'];
             },
             configOverwrite: {
                 startWithAudioMuted: false,
-                startWithVideoMuted: false
+                startWithVideoMuted: false,
+                disableDeepLinking: true
             },
             interfaceConfigOverwrite: {
                 TOOLBAR_BUTTONS: [
                     'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
-                    'fodeviceselection', 'hangup', 'profile', 'chat', 'recording',
-                    'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
-                    'videoquality', 'filmstrip', 'invite', 'feedback', 'stats', 'shortcuts',
-                    'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone',
-                    'security'
+                    'fodeviceselection', 'hangup', 'chat', 'raisehand',
+                    'videoquality', 'filmstrip', 'tileview', 'videobackgroundblur'
                 ],
-                SHOW_JITSI_WATERMARK: false
+                SHOW_JITSI_WATERMARK: false,
+                SHOW_WATERMARK_FOR_GUESTS: false
             }
         };
         const api = new JitsiMeetExternalAPI(domain, options);

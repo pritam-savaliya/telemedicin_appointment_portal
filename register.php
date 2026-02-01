@@ -51,13 +51,14 @@ $hide_header = true;
 include 'includes/header.php';
 ?>
 
-<div class="auth-wrapper" style="padding-top: 0;">
-    <div class="auth-container">
-        <div style="text-align: center; margin-bottom: 1rem;">
-            <i class="fas fa-user-plus" style="font-size: 3rem; color: var(--primary-color);"></i>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <i class="fas fa-user-plus" style="font-size: 4rem; color: var(--primary-color);"></i>
         </div>
-        <h2>Create Account</h2>
-        <p>Join TeleMed to book appointments easily</p>
+        <h2 style="text-align: center; margin-bottom: 10px;">Create Account</h2>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 30px;">Join TeleMed to book appointments
+            easily</p>
 
         <?php if ($message != ""): ?>
             <?php echo $message; ?>
@@ -104,11 +105,14 @@ include 'includes/header.php';
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary auth-btn">Sign Up <i class="fas fa-arrow-right"></i></button>
+            <button type="submit" class="btn btn-primary"
+                style="width: 100%; padding: 12px; font-size: 1.1rem; margin-top: 15px;">Sign Up <i
+                    class="fas fa-arrow-right"></i></button>
         </form>
 
-        <div class="auth-footer">
-            Already have an account? <a href="login.php">Login here</a>
+        <div style="text-align: center; margin-top: 25px; font-size: 0.95rem; color: var(--text-muted);">
+            Already have an account? <a href="login.php" style="color: var(--primary-color); font-weight: 600;">Login
+                here</a>
         </div>
     </div>
 </div>

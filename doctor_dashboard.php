@@ -48,13 +48,12 @@ $result = $conn->query($sql);
 
 <?php include 'includes/header.php'; ?>
 
-<div class="container" style="padding: 4rem 5%; max-width: 1200px; margin: 0 auto; min-height: 70vh;">
-
+<div class="container section">
 
     <!-- Header Section -->
     <div style="margin-bottom: 2rem;">
-        <h1 style="font-size: 2.2rem; margin-bottom: 0.5rem; color: var(--dark-bg);">Doctor Dashboard</h1>
-        <p style="color: var(--text-muted);">Welcome back, <span
+        <h1 style="color: var(--secondary-color);">Doctor Dashboard</h1>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">Welcome back, <span
                 style="color: var(--primary-color); font-weight: 600;">Dr. <?php echo $_SESSION['fullname']; ?></span>
         </p>
     </div>
@@ -66,163 +65,143 @@ $result = $conn->query($sql);
     $stats_confirmed = $conn->query("SELECT COUNT(*) as c FROM appointments WHERE doctor_id = $doctor_id AND status = 'confirmed'")->fetch_assoc()['c'];
     $stats_completed = $conn->query("SELECT COUNT(*) as c FROM appointments WHERE doctor_id = $doctor_id AND status = 'completed'")->fetch_assoc()['c'];
     ?>
+
     <div
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 40px;">
-        <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 20px; transition: transform 0.3s;"
-            onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-bottom: 40px;">
+        <div class="card" style="display: flex; align-items: center; gap: 20px;">
             <div
-                style="background: rgba(0, 123, 255, 0.1); padding: 15px; border-radius: 50%; color: var(--primary-color);">
-                <i class="fas fa-calendar-check" style="font-size: 1.8rem;"></i>
+                style="background: rgba(0, 123, 255, 0.1); padding: 16px; border-radius: 50%; color: var(--primary-color);">
+                <i class="fas fa-calendar-check" style="font-size: 1.5rem;"></i>
             </div>
             <div>
-                <h3 style="margin: 0; font-size: 2rem;"><?php echo $stats_total; ?></h3>
-                <span style="color: var(--text-muted); font-size: 0.9rem;">Total Appointments</span>
+                <h3 style="font-size: 2rem; margin-bottom: 5px;"><?php echo $stats_total; ?></h3>
+                <span style="color: var(--text-muted);">Total Appointments</span>
             </div>
         </div>
-        <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 20px; transition: transform 0.3s;"
-            onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div class="card" style="display: flex; align-items: center; gap: 20px;">
             <div
-                style="background: rgba(253, 203, 110, 0.1); padding: 15px; border-radius: 50%; color: var(--warning-color);">
-                <i class="fas fa-user-clock" style="font-size: 1.8rem;"></i>
+                style="background: rgba(253, 203, 110, 0.1); padding: 16px; border-radius: 50%; color: var(--warning-color);">
+                <i class="fas fa-user-clock" style="font-size: 1.5rem;"></i>
             </div>
             <div>
-                <h3 style="margin: 0; font-size: 2rem;"><?php echo $stats_pending; ?></h3>
-                <span style="color: var(--text-muted); font-size: 0.9rem;">Pending Requests</span>
+                <h3 style="font-size: 2rem; margin-bottom: 5px;"><?php echo $stats_pending; ?></h3>
+                <span style="color: var(--text-muted);">Pending Requests</span>
             </div>
         </div>
-        <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 20px; transition: transform 0.3s;"
-            onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div class="card" style="display: flex; align-items: center; gap: 20px;">
             <div
-                style="background: rgba(0, 184, 148, 0.1); padding: 15px; border-radius: 50%; color: var(--success-color);">
-                <i class="fas fa-comments" style="font-size: 1.8rem;"></i>
+                style="background: rgba(0, 184, 148, 0.1); padding: 16px; border-radius: 50%; color: var(--success-color);">
+                <i class="fas fa-comments" style="font-size: 1.5rem;"></i>
             </div>
             <div>
-                <h3 style="margin: 0; font-size: 2rem;"><?php echo $stats_confirmed; ?></h3>
-                <span style="color: var(--text-muted); font-size: 0.9rem;">Active Consultations</span>
+                <h3 style="font-size: 2rem; margin-bottom: 5px;"><?php echo $stats_confirmed; ?></h3>
+                <span style="color: var(--text-muted);">Active Consultations</span>
             </div>
         </div>
-        <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: var(--shadow-sm); display: flex; align-items: center; gap: 20px; transition: transform 0.3s;"
-            onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div class="card" style="display: flex; align-items: center; gap: 20px;">
             <div
-                style="background: rgba(108, 117, 125, 0.1); padding: 15px; border-radius: 50%; color: var(--secondary-color);">
-                <i class="fas fa-check-double" style="font-size: 1.8rem;"></i>
+                style="background: rgba(108, 117, 125, 0.1); padding: 16px; border-radius: 50%; color: var(--secondary-color);">
+                <i class="fas fa-check-double" style="font-size: 1.5rem;"></i>
             </div>
             <div>
-                <h3 style="margin: 0; font-size: 2rem;"><?php echo $stats_completed; ?></h3>
-                <span style="color: var(--text-muted); font-size: 0.9rem;">Completed Treatments</span>
+                <h3 style="font-size: 2rem; margin-bottom: 5px;"><?php echo $stats_completed; ?></h3>
+                <span style="color: var(--text-muted);">Completed Treatments</span>
             </div>
         </div>
     </div>
 
     <!-- Appointment List -->
-    <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: var(--shadow-sm);">
-        <h3
-            style="margin-bottom: 25px; color: var(--dark-bg); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px;">
-            <i class="fas fa-list-alt" style="color: var(--secondary-color);"></i> Appointment Management
-        </h3>
+    <div class="card" style="padding: 0; overflow: hidden;">
+        <div style="padding: 25px; border-bottom: 1px solid #eee;">
+            <h3 style="margin: 0;"><i class="fas fa-list-alt" style="color: var(--secondary-color);"></i> Appointment
+                Management</h3>
+        </div>
 
-        <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+        <div class="table-container">
+            <table>
                 <thead>
-                    <tr style="background-color: #f8f9fa;">
-                        <th
-                            style="padding: 15px; text-align: left; border-bottom: 2px solid #eee; color: var(--text-muted); font-weight: 600;">
-                            Patient</th>
-                        <th
-                            style="padding: 15px; text-align: left; border-bottom: 2px solid #eee; color: var(--text-muted); font-weight: 600;">
-                            Date</th>
-                        <th
-                            style="padding: 15px; text-align: left; border-bottom: 2px solid #eee; color: var(--text-muted); font-weight: 600;">
-                            Time</th>
-                        <th
-                            style="padding: 15px; text-align: left; border-bottom: 2px solid #eee; color: var(--text-muted); font-weight: 600;">
-                            Status</th>
-                        <th
-                            style="padding: 15px; text-align: left; border-bottom: 2px solid #eee; color: var(--text-muted); font-weight: 600;">
-                            Action</th>
+                    <tr>
+                        <th>Patient</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if ($result->num_rows > 0): ?>
                         <?php while ($row = $result->fetch_assoc()): ?>
-                            <tr style="transition: background 0.2s;" onmouseover="this.style.background='#f9f9f9'"
-                                onmouseout="this.style.background='transparent'">
-                                <td style="padding: 15px; border-bottom: 1px solid #eee; font-weight: 500;">
+                            <tr>
+                                <td style="font-weight: 500;">
                                     <div style="display: flex; align-items: center; gap: 10px;">
                                         <div
                                             style="background: #e9ecef; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
                                             <i class="fas fa-user" style="font-size: 0.8rem;"></i>
                                         </div>
                                         <?php echo $row['patient_name']; ?>
+                                        <a href="view_patient_records.php?patient_id=<?php echo $row['patient_id']; ?>"
+                                            title="View Medical Records"
+                                            style="color: var(--primary-color); font-size: 0.9rem;">
+                                            <i class="fas fa-file-medical-alt"></i>
+                                        </a>
                                     </div>
                                 </td>
-                                <td style="padding: 15px; border-bottom: 1px solid #eee; color: var(--text-muted);">
+                                <td style="color: var(--text-muted);">
                                     <?php echo date('M d, Y', strtotime($row['date'])); ?>
                                 </td>
-                                <td style="padding: 15px; border-bottom: 1px solid #eee; color: var(--text-muted);">
+                                <td style="color: var(--text-muted);">
                                     <?php echo date("h:i A", strtotime($row['time'])); ?>
                                 </td>
-                                <td style="padding: 15px; border-bottom: 1px solid #eee;">
+                                <td>
                                     <?php
                                     $status = $row['status'];
-                                    $bg_color = '#ffeaa7';
-                                    $text_color = '#fdcb6e';
-                                    $icon = 'fa-clock';
-
-                                    if ($status == 'confirmed') {
-                                        $bg_color = '#55efc4';
-                                        $text_color = '#00b894';
-                                        $icon = 'fa-check-circle';
-                                    } elseif ($status == 'rejected') {
-                                        $bg_color = '#ff7675';
-                                        $text_color = '#d63031';
-                                        $icon = 'fa-times-circle';
-                                    } elseif ($status == 'completed') {
-                                        $bg_color = '#74b9ff';
-                                        $text_color = '#0984e3';
-                                        $icon = 'fa-clipboard-check';
-                                    }
+                                    $badge_class = 'badge-pending';
+                                    if ($status == 'confirmed')
+                                        $badge_class = 'badge-success';
+                                    elseif ($status == 'rejected')
+                                        $badge_class = 'badge-danger';
                                     ?>
-                                    <span
-                                        style="background: <?php echo $bg_color; ?>; color: <?php echo $text_color; ?>; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; text-transform: capitalize; display: inline-flex; align-items: center; gap: 5px;">
-                                        <i class="fas <?php echo $icon; ?>"></i> <?php echo $status; ?>
-                                    </span>
+                                    <span class="badge <?php echo $badge_class; ?>"><?php echo ucfirst($status); ?></span>
                                 </td>
-                                <td style="padding: 15px; border-bottom: 1px solid #eee;">
+                                <td>
                                     <div style="display: flex; gap: 10px; align-items: center;">
                                         <?php if ($status == 'pending'): ?>
                                             <a href="doctor_dashboard.php?action=confirmed&id=<?php echo $row['id']; ?>"
-                                                class="btn btn-primary"
-                                                style="padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,123,255,0.2);">
+                                                class="btn btn-primary" style="padding: 6px 12px; font-size: 0.85rem;">
                                                 Accept
                                             </a>
                                             <a href="doctor_dashboard.php?action=rejected&id=<?php echo $row['id']; ?>"
                                                 class="btn btn-outline"
-                                                style="padding: 6px 12px; font-size: 0.85rem; color: #ff7675; border-color: #ff7675; border-radius: 6px;">
+                                                style="padding: 6px 12px; font-size: 0.85rem; color: #ff7675; border-color: #ff7675;">
                                                 Reject
                                             </a>
                                         <?php elseif ($status == 'confirmed'): ?>
-                                            <a href="chat.php?appointment_id=<?php echo $row['id']; ?>" class="btn btn-primary"
-                                                style="padding: 8px 16px; font-size: 0.9rem; background-color: var(--secondary-color); border-color: var(--secondary-color); position: relative; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px;">
+                                            <a href="chat.php?appointment_id=<?php echo $row['id']; ?>" class="btn btn-secondary"
+                                                style="padding: 6px 12px; font-size: 0.85rem; position: relative;">
                                                 <i class="fas fa-comments"></i> Chat
                                                 <?php if ($row['unread_msgs'] > 0): ?>
                                                     <span
-                                                        style="position: absolute; top: -8px; right: -8px; background: var(--danger-color); color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                        style="position: absolute; top: -5px; right: -5px; background: var(--danger-color); color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; display: flex; align-items: center; justify-content: center;">
                                                         <?php echo $row['unread_msgs']; ?>
                                                     </span>
                                                 <?php endif; ?>
                                             </a>
                                             <button onclick="startVideoCall(<?php echo $row['id']; ?>)" class="btn btn-primary"
-                                                style="padding: 8px 16px; font-size: 0.9rem; margin-left: 5px; background-color: #6c5ce7; border-color: #6c5ce7; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px;">
-                                                <i class="fas fa-video"></i> Start Call
+                                                style="padding: 6px 12px; font-size: 0.85rem; background: #6c5ce7; border-color: #6c5ce7;">
+                                                <i class="fas fa-video"></i> Call
                                             </button>
-                                            <button onclick="markComplete(<?php echo $row['id']; ?>)" class="btn btn-primary"
-                                                style="padding: 8px 16px; font-size: 0.9rem; margin-left: 5px; background-color: var(--primary-color); position: relative; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px;">
+                                            <button onclick="markComplete(<?php echo $row['id']; ?>)" class="btn btn-success"
+                                                style="padding: 6px 12px; font-size: 0.85rem; background: var(--success-color); border: none; color: white;">
                                                 <i class="fas fa-check"></i> Done
                                             </button>
                                         <?php elseif ($status == 'completed'): ?>
-                                            <span style="color: var(--primary-color); font-weight: 500;"><i
+                                            <span style="color: var(--success-color); font-weight: 500;"><i
                                                     class="fas fa-check-double"></i> Completed</span>
+                                            <a href="write_prescription.php?appointment_id=<?php echo $row['id']; ?>"
+                                                class="btn btn-outline"
+                                                style="padding: 4px 10px; font-size: 0.8rem; margin-left: 10px;">
+                                                <i class="fas fa-prescription"></i> Prescribe
+                                            </a>
                                         <?php else: ?>
                                             <span style="color: #b2bec3; font-style: italic;">No actions</span>
                                         <?php endif; ?>
@@ -233,9 +212,6 @@ $result = $conn->query($sql);
                     <?php else: ?>
                         <tr>
                             <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
-                                <div style="margin-bottom: 15px; color: #dfe6e9;">
-                                    <i class="fas fa-calendar-times" style="font-size: 3rem;"></i>
-                                </div>
                                 No appointments found.
                             </td>
                         </tr>

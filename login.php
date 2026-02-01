@@ -59,13 +59,14 @@ $hide_header = true;
 include 'includes/header.php';
 ?>
 
-<div class="auth-wrapper" style="padding-top: 0;">
-    <div class="auth-container">
-        <div style="text-align: center; margin-bottom: 1rem;">
-            <i class="fas fa-user-circle" style="font-size: 3rem; color: var(--primary-color);"></i>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <i class="fas fa-user-circle" style="font-size: 4rem; color: var(--primary-color);"></i>
         </div>
-        <h2>Welcome Back</h2>
-        <p>Login to manage your appointments</p>
+        <h2 style="text-align: center; margin-bottom: 10px;">Welcome Back</h2>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 30px;">Login to manage your appointments
+        </p>
 
         <?php if ($message != ""): ?>
             <?php echo $message; ?>
@@ -133,15 +134,18 @@ include 'includes/header.php';
                 </div>
             </div>
 
-            <div style="text-align: right; margin-bottom: 15px;">
-                <a href="#" style="font-size: 0.9rem; color: var(--primary-color);">Forgot Password?</a>
+            <div style="text-align: right; margin-bottom: 25px;">
+                <a href="#" style="font-size: 0.9rem; color: var(--primary-color); font-weight: 500;">Forgot
+                    Password?</a>
             </div>
 
-            <button type="submit" class="btn btn-primary auth-btn">Login <i class="fas fa-sign-in-alt"></i></button>
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1.1rem;">Login
+                <i class="fas fa-sign-in-alt"></i></button>
         </form>
 
-        <div class="auth-footer">
-            Don't have an account? <a href="register.php">Register here</a>
+        <div style="text-align: center; margin-top: 25px; font-size: 0.95rem; color: var(--text-muted);">
+            Don't have an account? <a href="register.php"
+                style="color: var(--primary-color); font-weight: 600;">Register here</a>
         </div>
     </div>
 </div>

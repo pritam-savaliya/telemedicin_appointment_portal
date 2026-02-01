@@ -16,60 +16,93 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $date = $conn->real_escape_string($_POST['date']);
     $time = $conn->real_escape_string($_POST['time']);
 
-    // Validation
     if (empty($doctor_id) || empty($date) || empty($time)) {
-        $message = "<div style='background: #ffdddd; color: red; padding: 10px; margin-bottom: 10px; border-radius: 5px;'>All fields are required.</div>";
+        $message = "<div class='alert-error'>All fields are required.</div>";
     } else {
-        $sql = "INSERT INTO appointments (patient_id, doctor_id, date, time) VALUES ('$patient_id', '$doctor_id', '$date', '$time')";
+        // Store Details in Session
+        $_SESSION['booking_details'] = [
+            'doctor_id' => $doctor_id,
+            'date' => $date,
+            'time' => $time
+        ];
 
-        if ($conn->query($sql) === TRUE) {
-            header("Location: home.php?msg=appointment_booked");
-            exit();
-        } else {
-            $message = "<div style='background: #ffdddd; color: red; padding: 10px; margin-bottom: 10px; border-radius: 5px;'>Error: " . $conn->error . "</div>";
-        }
+        // Redirect to Payment
+        header("Location: payment.php");
+        exit();
     }
 }
 
 // Fetch Doctors
-$doctors_sql = "SELECT id, fullname FROM users WHERE role = 'doctor'";
+// Fetch Doctors with average rating
+$doctors_sql = "SELECT u.id, u.fullname, AVG(r.rating) as avg_rating 
+                FROM users u 
+                LEFT JOIN reviews r ON u.id = r.doctor_id 
+                WHERE u.role = 'doctor' 
+                GROUP BY u.id";
 $doctors_result = $conn->query($doctors_sql);
 ?>
 
 <?php include 'includes/header.php'; ?>
 
 <div class="auth-wrapper">
-    <div class="auth-container" style="max-width: 600px; text-align: left;">
-        <h2 style="text-align: center;">Book Appointment</h2>
-        <p style="text-align: center; margin-bottom: 2rem;">Select a doctor and schedule your visit.</p>
+    <div class="auth-card">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div
+                style="background: rgba(0, 184, 148, 0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto; color: var(--success-color);">
+                <i class="fas fa-calendar-check" style="font-size: 2.5rem;"></i>
+            </div>
+        </div>
+        <h2 style="text-align: center; margin-bottom: 10px;">Book Appointment</h2>
+        <p style="text-align: center; color: var(--text-muted); margin-bottom: 30px;">Select a doctor and schedule your
+            visit.</p>
 
         <?php echo $message; ?>
 
         <form action="" method="POST">
             <div class="form-group">
                 <label for="doctor">Select Doctor</label>
-                <select name="doctor_id" id="doctor" class="form-control" required>
-                    <option value="">-- Choose a Doctor --</option>
-                    <?php while ($row = $doctors_result->fetch_assoc()): ?>
-                        <option value="<?php echo $row['id']; ?>">Dr.
-                            <?php echo $row['fullname']; ?>
-                        </option>
-                    <?php endwhile; ?>
-                </select>
+                <div class="input-with-icon">
+                    <i class="fas fa-user-md"></i>
+                    <select name="doctor_id" id="doctor" class="form-control" required>
+                        <option value="">-- Choose a Doctor --</option>
+                        <?php while ($row = $doctors_result->fetch_assoc()): ?>
+                            <?php
+                            $rating_display = "";
+                            if ($row['avg_rating']) {
+                                $rating_display = " (" . number_format($row['avg_rating'], 1) . " ⭐)";
+                            }
+                            ?>
+                            <option value="<?php echo $row['id']; ?>">Dr. <?php echo $row['fullname'] . $rating_display; ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="date">Date</label>
-                <input type="date" name="date" class="form-control" required>
+                <div class="input-with-icon">
+                    <i class="fas fa-calendar"></i>
+                    <input type="date" name="date" class="form-control" required>
+                </div>
             </div>
 
             <div class="form-group">
                 <label for="time">Time</label>
-                <input type="time" name="time" class="form-control" required>
+                <div class="input-with-icon">
+                    <i class="fas fa-clock"></i>
+                    <input type="time" name="time" class="form-control" required>
+                </div>
             </div>
 
-            <button type="submit" class="btn btn-primary auth-btn">Confirm Booking</button>
+            <button type="submit" class="btn btn-primary"
+                style="width: 100%; padding: 12px; font-size: 1.1rem; margin-top: 15px;">Confirm Booking <i
+                    class="fas fa-arrow-right"></i></button>
         </form>
+
+        <div style="text-align: center; margin-top: 25px;">
+            <a href="patient_dashboard.php" style="color: var(--text-muted); font-size: 0.9rem;">Back to Dashboard</a>
+        </div>
     </div>
 </div>
 

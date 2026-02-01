@@ -53,6 +53,8 @@ document.addEventListener('DOMContentLoaded', function () {
             messageText = "Login Successful!";
         } else if (msg === 'logged_out') {
             messageText = "Logout Successful!";
+        } else if (msg === 'prescription_saved') {
+            messageText = "Prescription Saved Successfully!";
         }
 
         if (messageText) {
