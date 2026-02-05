@@ -130,7 +130,7 @@ $user_name = $_SESSION['fullname'];
                 <i class="fas fa-phone-slash"></i> End Call
             </button>
         <?php else: ?>
-            <a href="patient_dashboard.php" class="btn-end-call">
+            <a href="patient/patient_dashboard.php" class="btn-end-call">
                 <i class="fas fa-sign-out-alt"></i> Leave Call
             </a>
         <?php endif; ?>
@@ -148,13 +148,13 @@ $user_name = $_SESSION['fullname'];
                 formData.append('appointment_id', appointmentId);
                 formData.append('status', 0); // Set inactive
 
-                fetch('toggle_call_status.php', {
+                fetch('api/toggle_call_status.php', {
                     method: 'POST',
                     body: formData
                 })
                     .then(response => response.json())
                     .then(data => {
-                        window.location.href = 'doctor_dashboard.php';
+                        window.location.href = 'doctor/doctor_dashboard.php';
                     });
             }
         }
@@ -165,7 +165,7 @@ $user_name = $_SESSION['fullname'];
             height: '100%',
             parentNode: document.querySelector('#meet'),
             userInfo: {
-                displayName: '<?php echo $user_name; ?>'
+                displayName: '<?php echo htmlspecialchars($user_name); ?>'
             },
             configOverwrite: {
                 startWithAudioMuted: false,

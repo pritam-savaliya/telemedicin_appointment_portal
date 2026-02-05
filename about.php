@@ -1,42 +1,34 @@
 <?php include 'includes/header.php'; ?>
 
-<!-- Page Header -->
-<div
-    style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); padding: 120px 0 80px; text-align: center; color: white; position: relative; overflow: hidden;">
-    <div
-        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('https://source.unsplash.com/1600x600/?medical,team') center/cover; opacity: 0.1;">
-    </div>
-    <div class="container" style="position: relative; z-index: 2;">
-        <h1 style="font-size: 3.5rem; margin-bottom: 20px; color: white;">About TeleMed</h1>
-        <p style="font-size: 1.5rem; opacity: 0.9; max-width: 700px; margin: 0 auto;">Transforming Healthcare with
+<div class="container section">
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="font-size: 2.5rem; color: var(--secondary-color); margin-bottom: 10px;">About TeleMed</h1>
+        <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 700px; margin: 0 auto;">Transforming
+            Healthcare with
             Technology & Compassion</p>
     </div>
-</div>
 
-<section class="section">
-    <div class="container">
-        <div style="display: flex; flex-wrap: wrap; gap: 60px; align-items: center;">
-            <div style="flex: 1; min-width: 300px;">
-                <img src="https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=800&q=80"
-                    alt="About Us" style="width: 100%; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);">
-            </div>
-            <div style="flex: 1; min-width: 300px;">
-                <h2 style="font-size: 2.5rem; margin-bottom: 1.5rem; color: var(--primary-color);">Our Mission</h2>
-                <p style="font-size: 1.1rem; color: var(--text-muted); line-height: 1.8; margin-bottom: 2rem;">
-                    To make quality healthcare accessible, affordable, and convenient for everyone, everywhere. We
-                    believe that distance should not be a barrier to receiving the best medical advice and treatment.
+    <div style="display: flex; flex-wrap: wrap; gap: 60px; align-items: center;">
+        <div style="flex: 1; min-width: 300px;">
+            <img src="https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=800&q=80"
+                alt="About Us" style="width: 100%; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);">
+        </div>
+        <div style="flex: 1; min-width: 300px;">
+            <h2 style="font-size: 2.5rem; margin-bottom: 1.5rem; color: var(--primary-color);">Our Mission</h2>
+            <p style="font-size: 1.1rem; color: var(--text-muted); line-height: 1.8; margin-bottom: 2rem;">
+                To make quality healthcare accessible, affordable, and convenient for everyone, everywhere. We
+                believe that distance should not be a barrier to receiving the best medical advice and treatment.
+            </p>
+            <div style="padding-left: 20px; border-left: 4px solid var(--accent-color);">
+                <h4 style="font-size: 1.2rem; margin-bottom: 10px;">Our Vision</h4>
+                <p style="color: var(--text-muted);">
+                    A world where everyone has instant access to top-tier medical professionals from the comfort of
+                    their homes, leading to a healthier and happier society.
                 </p>
-                <div style="padding-left: 20px; border-left: 4px solid var(--accent-color);">
-                    <h4 style="font-size: 1.2rem; margin-bottom: 10px;">Our Vision</h4>
-                    <p style="color: var(--text-muted);">
-                        A world where everyone has instant access to top-tier medical professionals from the comfort of
-                        their homes, leading to a healthier and happier society.
-                    </p>
-                </div>
             </div>
         </div>
     </div>
-</section>
+</div>
 
 <!-- Stats Section -->
 <section class="section" style="background: var(--primary-color); color: white;">

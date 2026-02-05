@@ -1,19 +1,64 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Select the registration form
-    const registerForm = document.querySelector('form[action=""]'); // Assuming the register form matches this or we can add an ID
+    // 🌓 Theme Selection Logic
+    const themeBtn = document.getElementById('theme-switch');
+    const htmlEl = document.documentElement;
+    const themeIcon = themeBtn ? themeBtn.querySelector('i') : null;
 
-    // Improved selection strategy: check if we are on register page
+    function updateThemeIcon(theme) {
+        if (!themeIcon) return;
+        if (theme === 'dark') {
+            themeIcon.className = 'fas fa-sun';
+        } else {
+            themeIcon.className = 'fas fa-moon';
+        }
+    }
+
+    // Initialize Icon from current attribute
+    updateThemeIcon(htmlEl.getAttribute('data-theme'));
+
+    if (themeBtn) {
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = htmlEl.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            htmlEl.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme-preference', newTheme);
+            updateThemeIcon(newTheme);
+
+            // Re-trigger layout paints if needed
+            window.dispatchEvent(new Event('resize'));
+        });
+    }
+
+    // 🚀 Scroll Animations using Intersection Observer
+    const animateItems = document.querySelectorAll('.animate-up');
+    if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        animateItems.forEach(item => {
+            item.style.animationPlayState = 'paused';
+            observer.observe(item);
+        });
+    }
+
+    // 📝 Registration Form Validation
+    const registerForm = document.querySelector('form[action=""]');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
-    const fullnameInput = document.getElementById('fullname'); // Available on register page
-    // const fullnameInput = document.getElementById('fullname'); // Available if needed
+    const fullnameInput = document.getElementById('fullname');
 
     if (registerForm && emailInput && passwordInput && fullnameInput) {
         registerForm.addEventListener('submit', function (event) {
             let isValid = true;
             let messages = [];
 
-            // Email Validation (Basic Regex)
             const emailValue = emailInput.value.trim();
             const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -22,11 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 messages.push("Please enter a valid email address.");
             }
 
-            // Password Validation (Alphabet + Number + Special Char)
             const passwordValue = passwordInput.value;
-            // (?=.*[a-zA-Z]) -> at least one alphabet
-            // (?=.*\d) -> at least one digit
-            // (?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]) -> at least one special char
             const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).+$/;
 
             if (!passwordPattern.test(passwordValue)) {
@@ -35,40 +76,34 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (!isValid) {
-                event.preventDefault(); // Stop form submission
-                alert(messages.join("\n")); // Show errors
+                event.preventDefault();
+                alert(messages.join("\n"));
             }
         });
     }
 
-    // Toast Notification Logic
-    var toast = document.getElementById("toast-notification");
-    var urlParams = new URLSearchParams(window.location.search);
-    var msg = urlParams.get('msg');
+    // 🔔 Toast Notification Logic
+    const toast = document.getElementById("toast-notification");
+    const urlParams = new URLSearchParams(window.location.search);
+    const msg = urlParams.get('msg');
 
     if (msg && toast) {
-        var messageText = "";
-
-        if (msg === 'login_success') {
-            messageText = "Login Successful!";
-        } else if (msg === 'logged_out') {
-            messageText = "Logout Successful!";
-        } else if (msg === 'prescription_saved') {
-            messageText = "Prescription Saved Successfully!";
-        }
+        let messageText = "";
+        if (msg === 'login_success') messageText = "Welcome to TeleMed!";
+        else if (msg === 'logged_out') messageText = "Successfully Logged Out!";
+        else if (msg === 'prescription_saved') messageText = "Prescription Uploaded!";
 
         if (messageText) {
-            toast.textContent = messageText;
-            toast.className = "toast-notification show";
+            toast.innerHTML = `<i class="fas fa-check-circle"></i> ${messageText}`;
+            toast.classList.add("show");
 
-            // Clean URL
-            var newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            // Cleanup URL
+            const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
             window.history.replaceState({ path: newUrl }, '', newUrl);
 
-            // Hide after 5 seconds
-            setTimeout(function () {
-                toast.className = toast.className.replace("show", "");
-            }, 5000);
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 4000);
         }
     }
 });

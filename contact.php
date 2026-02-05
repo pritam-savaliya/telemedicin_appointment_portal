@@ -1,26 +1,43 @@
 <?php include 'includes/header.php'; ?>
 
-<!-- Page Header -->
-<div
-    style="background: linear-gradient(135deg, var(--secondary-color), #2d3436); color: white; padding: 100px 0 60px; text-align: center;">
-    <div class="container">
-        <h1 style="font-size: 3rem; margin-bottom: 1rem; color: white;">Contact Us</h1>
-        <p style="font-size: 1.2rem; opacity: 0.8; max-width: 600px; margin: 0 auto;">We'd love to hear from you. Reach
+<div class="container section">
+    <div style="text-align: center; margin-bottom: 3rem;">
+        <h1 style="font-size: 2.5rem; color: var(--secondary-color); margin-bottom: 10px;">Contact Us</h1>
+        <p style="color: var(--text-muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">We'd love to hear from
+            you. Reach
             out to us for any queries or support.</p>
     </div>
-</div>
 
-<?php
-$msg = "";
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // In a real app, we would save to DB or send email
-    // For now, just show success
-    $msg = "<div class='alert-success'>Message sent successfully! We will get back to you soon.</div>";
-}
-?>
+    <?php
+    $msg = "";
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        $name = $conn->real_escape_string($_POST['fullname']);
+        $email = $conn->real_escape_string($_POST['email']);
+        $subject = $conn->real_escape_string($_POST['subject']);
+        $message = $conn->real_escape_string($_POST['message']);
 
-<section class="section" style="margin-top: -30px;">
-    <div class="container">
+        $sql = "INSERT INTO contact_messages (name, email, subject, message) VALUES ('$name', '$email', '$subject', '$message')";
+
+        if ($conn->query($sql) === TRUE) {
+            $msg = "<div class='alert-success'>Message sent successfully! We will get back to you soon.</div>";
+
+            // Notify Admins
+            $admin_result = $conn->query("SELECT id FROM users WHERE role = 'admin'");
+            if ($admin_result->num_rows > 0) {
+                $notif_msg = "New support message from $name: $subject";
+                while ($admin = $admin_result->fetch_assoc()) {
+                    $admin_id = $admin['id'];
+                    $conn->query("INSERT INTO notifications (user_id, message) VALUES ($admin_id, '$notif_msg')");
+                }
+            }
+
+        } else {
+            $msg = "<div class='alert-error'>Error: " . $conn->error . "</div>";
+        }
+    }
+    ?>
+
+    <div>
         <div class="card" style="padding: 0; overflow: hidden; display: flex; flex-wrap: wrap;">
             <!-- Contact Info Side -->
             <div style="flex: 1; min-width: 300px; background: var(--primary-color); padding: 3rem; color: white;">
@@ -28,12 +45,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 <div style="margin-bottom: 2rem; display: flex; gap: 15px;">
                     <i class="fas fa-map-marker-alt" style="font-size: 1.2rem; margin-top: 5px;"></i>
-                    <p style="opacity: 0.9;">123 Medical Plaza, Health Street,<br>New York, NY 10001</p>
+                    <p style="opacity: 0.9;">Green City, VIP Road,<br>Surat, Gujarat, India 395007</p>
                 </div>
 
                 <div style="margin-bottom: 2rem; display: flex; gap: 15px;">
                     <i class="fas fa-phone" style="font-size: 1.2rem; margin-top: 5px;"></i>
-                    <p style="opacity: 0.9;">+1 (555) 123-4567</p>
+                    <p style="opacity: 0.9;">+91 98765 43210</p>
                 </div>
 
                 <div style="margin-bottom: 2rem; display: flex; gap: 15px;">
@@ -63,21 +80,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div class="form-group">
                             <label>Full Name</label>
-                            <input type="text" class="form-control" placeholder="Your Name" required>
+                            <input type="text" name="fullname" class="form-control" placeholder="Your Name" required>
                         </div>
                         <div class="form-group">
                             <label>Email Address</label>
-                            <input type="email" class="form-control" placeholder="Your Email" required>
+                            <input type="email" name="email" class="form-control" placeholder="Your Email" required>
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Subject</label>
-                        <input type="text" class="form-control" placeholder="Subject" required>
+                        <input type="text" name="subject" class="form-control" placeholder="Subject" required>
                     </div>
                     <div class="form-group">
                         <label>Message</label>
-                        <textarea class="form-control" rows="5" placeholder="How can we help you?" style="resize: none;"
-                            required></textarea>
+                        <textarea name="message" class="form-control" rows="5" placeholder="How can we help you?"
+                            style="resize: none;" required></textarea>
                     </div>
                     <button type="submit" class="btn btn-primary" style="padding: 12px 30px;">Send Message <i
                             class="fas fa-paper-plane" style="margin-left: 8px;"></i></button>
@@ -85,14 +102,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         </div>
     </div>
-</section>
+</div>
 
 <!-- Map Section -->
 <div style="width: 100%; height: 400px; background: #eee;">
-    <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d387193.30596698663!2d-74.25986790924793!3d40.697149413862214!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c24fa5d33f083b%3A0xc80b8f06e177fe62!2sNew%20York%2C%20USA!5e0!3m2!1sen!2sin!4v1645455874284!5m2!1sen!2sin"
-        width="100%" height="100%" style="border:0; filter: grayscale(100%);" allowfullscreen=""
-        loading="lazy"></iframe>
+    <iframe src="https://maps.google.com/maps?q=Surat,Gujarat&hl=en&z=14&output=embed" width="100%" height="100%"
+        style="border:0; filter: grayscale(100%);" allowfullscreen="" loading="lazy"></iframe>
 </div>
 
 <?php include 'includes/footer.php'; ?>

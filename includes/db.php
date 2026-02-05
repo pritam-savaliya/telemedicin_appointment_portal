@@ -11,4 +11,7 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
+
+// Define Base URL
+define('BASE_URL', 'http://localhost/telemedicine_appointment/');
 ?>

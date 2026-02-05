@@ -33,161 +33,7 @@ $other_party_name = ($_SESSION['role'] == 'patient') ? $appointment['doctor_name
 
 <?php include 'includes/header.php'; ?>
 
-<style>
-    .chat-layout {
-        display: flex;
-        flex-direction: column;
-        height: 75vh;
-        max-width: 900px;
-        margin: 0 auto;
-        background: white;
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-lg);
-        overflow: hidden;
-    }
 
-    .chat-header {
-        background: var(--surface-color);
-        padding: 1.5rem 2rem;
-        border-bottom: 1px solid #eee;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .chat-header h3 {
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-
-    .status-dot {
-        width: 10px;
-        height: 10px;
-        background: var(--success-color);
-        border-radius: 50%;
-        display: inline-block;
-    }
-
-    .chat-messages {
-        flex: 1;
-        padding: 2rem;
-        overflow-y: auto;
-        background: #F9FAFB;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .message {
-        display: flex;
-        flex-direction: column;
-        max-width: 70%;
-        position: relative;
-    }
-
-    .message.sent {
-        align-self: flex-end;
-        align-items: flex-end;
-    }
-
-    .message.received {
-        align-self: flex-start;
-        align-items: flex-start;
-    }
-
-    .message-bubble {
-        padding: 12px 20px;
-        border-radius: 18px;
-        font-size: 1rem;
-        line-height: 1.5;
-        position: relative;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    }
-
-    .message.sent .message-bubble {
-        background: var(--primary-color);
-        color: white;
-        border-bottom-right-radius: 4px;
-    }
-
-    .message.received .message-bubble {
-        background: white;
-        color: var(--text-main);
-        border: 1px solid #e0e0e0;
-        border-bottom-left-radius: 4px;
-    }
-
-    .message-time {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-        margin-top: 5px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-    .chat-input-area {
-        padding: 1.5rem;
-        background: white;
-        border-top: 1px solid #eee;
-        display: flex;
-        gap: 15px;
-        align-items: center;
-    }
-
-    .chat-input-area input {
-        flex: 1;
-        padding: 15px 20px;
-        border: 1px solid #e0e0e0;
-        border-radius: 30px;
-        outline: none;
-        font-family: var(--font-body);
-        transition: var(--transition-smooth);
-        background: #f8f9fa;
-    }
-
-    .chat-input-area input:focus {
-        background: white;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
-    }
-
-    .btn-send {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: var(--primary-color);
-        color: white;
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: var(--transition-smooth);
-        box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
-    }
-
-    .btn-send:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 15px rgba(108, 92, 231, 0.4);
-    }
-
-    /* Scrollbar Styling */
-    .chat-messages::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .chat-messages::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .chat-messages::-webkit-scrollbar-thumb {
-        background: #ccc;
-        border-radius: 10px;
-    }
-</style>
 
 <div class="container section">
     <div class="chat-layout">
@@ -232,7 +78,7 @@ $other_party_name = ($_SESSION['role'] == 'patient') ? $appointment['doctor_name
 
         <div class="chat-input-area">
             <button class="btn btn-outline"
-                style="width: 40px; height: 40px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; border: none; background: #f0f0f0; color: #777;">
+                style="width: 40px; height: 40px; border-radius: 50%; padding: 0; display: flex; align-items: center; justify-content: center; border: none; background: transparent; color: var(--text-muted);">
                 <i class="fas fa-paperclip"></i>
             </button>
             <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
@@ -249,7 +95,7 @@ $other_party_name = ($_SESSION['role'] == 'patient') ? $appointment['doctor_name
     const chatBox = document.getElementById('chatMessages');
 
     function fetchMessages() {
-        fetch(`chat_endpoint.php?action=fetch&appointment_id=${appointmentId}`)
+        fetch(`api/chat_endpoint.php?action=fetch&appointment_id=${appointmentId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
@@ -296,7 +142,7 @@ $other_party_name = ($_SESSION['role'] == 'patient') ? $appointment['doctor_name
         formData.append('appointment_id', appointmentId);
         formData.append('message', message);
 
-        fetch(`chat_endpoint.php?action=send`, {
+        fetch(`api/chat_endpoint.php?action=send`, {
             method: 'POST',
             body: formData
         })
@@ -328,7 +174,7 @@ $other_party_name = ($_SESSION['role'] == 'patient') ? $appointment['doctor_name
         formData.append('appointment_id', appointmentId);
         formData.append('status', 1);
 
-        fetch('toggle_call_status.php', {
+        fetch('api/toggle_call_status.php', {
             method: 'POST',
             body: formData
         })

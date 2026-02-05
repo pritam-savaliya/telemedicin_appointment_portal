@@ -2,7 +2,6 @@
 session_start();
 include 'includes/db.php';
 
-// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
@@ -14,48 +13,50 @@ $message = "";
 // Handle Form Submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fullname = $conn->real_escape_string($_POST['fullname']);
-    $old_password = $_POST['old_password'];
-    $new_password = $_POST['new_password'];
-    $confirm_password = $_POST['confirm_password'];
+    $phone = $conn->real_escape_string($_POST['phone']);
+    $gender = $conn->real_escape_string($_POST['gender']);
+    $dob = $conn->real_escape_string($_POST['dob']);
+    $address = $conn->real_escape_string($_POST['address']);
 
-    // Update Query
-    if (!empty($new_password)) {
-        // Validate Old Password
-        $check_sql = "SELECT password FROM users WHERE id = $user_id";
-        $check_res = $conn->query($check_sql);
-        $user_data = $check_res->fetch_assoc();
+    // Server-side Validation
+    if (!preg_match('/^[6-9][0-9]{9}$/', $phone)) {
+        $message = "<div class='alert-error'>Invalid phone number. Please enter a valid 10-digit mobile number.</div>";
+    } else {
 
-        if (empty($old_password)) {
-            $message = "<div style='background: #ffdddd; color: red; padding: 10px; margin-bottom: 20px; border-radius: 5px;'>Please enter your old password to set a new one.</div>";
-        } elseif (!password_verify($old_password, $user_data['password'])) {
-            $message = "<div style='background: #ffdddd; color: red; padding: 10px; margin-bottom: 20px; border-radius: 5px;'>Old password is incorrect.</div>";
-        } elseif ($new_password !== $confirm_password) {
-            $message = "<div style='background: #ffdddd; color: red; padding: 10px; margin-bottom: 20px; border-radius: 5px;'>New passwords do not match.</div>";
-        } elseif (strlen($new_password) < 6) {
-            $message = "<div style='background: #ffdddd; color: red; padding: 10px; margin-bottom: 20px; border-radius: 5px;'>Password must be at least 6 characters.</div>";
-        } else {
-            $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-            $sql = "UPDATE users SET fullname = '$fullname', password = '$hashed_password' WHERE id = $user_id";
-            if ($conn->query($sql) === TRUE) {
-                $_SESSION['fullname'] = $fullname; // Update session
-                $message = "<div style='background: #ddffdd; color: green; padding: 10px; margin-bottom: 20px; border-radius: 5px;'>Profile and password updated successfully!</div>";
+        // Handle File Upload
+        $profile_pic_sql = "";
+        if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] == 0) {
+            $allowed = ['jpg', 'jpeg', 'png', 'gif'];
+            $filename = $_FILES['profile_pic']['name'];
+            $filetype = pathinfo($filename, PATHINFO_EXTENSION);
+
+            if (in_array(strtolower($filetype), $allowed)) {
+                $new_filename = "user_" . $user_id . "_" . time() . "." . $filetype;
+                $upload_path = "assets/uploads/profile_pics/" . $new_filename;
+
+                if (move_uploaded_file($_FILES['profile_pic']['tmp_name'], $upload_path)) {
+                    $profile_pic_sql = ", profile_pic = '$new_filename'";
+                    $_SESSION['profile_pic'] = $new_filename; // Update session
+                } else {
+                    $message = "<div class='alert-error'>Failed to upload image.</div>";
+                }
             } else {
-                $message = "Error updating profile: " . $conn->error;
+                $message = "<div class='alert-error'>Invalid file type. Only JPG, PNG, GIF allowed.</div>";
             }
         }
-    } else {
-        // Only update fullname
-        $sql = "UPDATE users SET fullname = '$fullname' WHERE id = $user_id";
+
+        $sql = "UPDATE users SET fullname='$fullname', phone='$phone', gender='$gender', dob='$dob', address='$address' $profile_pic_sql WHERE id=$user_id";
+
         if ($conn->query($sql) === TRUE) {
             $_SESSION['fullname'] = $fullname; // Update session
-            $message = "<div style='background: #ddffdd; color: green; padding: 10px; margin-bottom: 20px; border-radius: 5px;'>Profile updated successfully!</div>";
+            $message = "<div class='alert-success'>Profile updated successfully!</div>";
         } else {
-            $message = "Error updating profile: " . $conn->error;
+            $message = "<div class='alert-error'>Error updating profile: " . $conn->error . "</div>";
         }
-    }
+    } // End of else block for validation
 }
 
-// Fetch Validation Data
+// Fetch Current Data
 $sql = "SELECT * FROM users WHERE id = $user_id";
 $result = $conn->query($sql);
 $user = $result->fetch_assoc();
@@ -63,52 +64,86 @@ $user = $result->fetch_assoc();
 
 <?php include 'includes/header.php'; ?>
 
-<div class="auth-wrapper">
-    <div class="auth-container" style="max-width: 600px; text-align: left;">
-        <h2 style="text-align: center; margin-bottom: 1rem;">Edit Profile</h2>
+<div class="container section">
+    <div style="max-width: 800px; margin: 0 auto;">
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>Edit Profile</h2>
+            <a href="profile.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Profile</a>
+        </div>
 
         <?php echo $message; ?>
 
-        <form action="" method="POST">
-            <div class="form-group">
-                <label for="email">Email (Cannot be changed)</label>
-                <input type="email" class="form-control" value="<?php echo $user['email']; ?>" disabled
-                    style="background: #e9ecef; cursor: not-allowed;">
-            </div>
+        <div class="card">
+            <form action="" method="POST" enctype="multipart/form-data">
 
-            <div class="form-group">
-                <label for="fullname">Full Name</label>
-                <input type="text" name="fullname" class="form-control" value="<?php echo $user['fullname']; ?>"
-                    required>
-            </div>
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div
+                        style="width: 120px; height: 120px; background: #f0f0f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; overflow: hidden; border: 4px solid white; box-shadow: var(--shadow-md); position: relative;">
+                        <?php if (!empty($user['profile_pic']) && $user['profile_pic'] != 'default_user.png'): ?>
+                            <img src="assets/uploads/profile_pics/<?php echo $user['profile_pic']; ?>" alt="Profile"
+                                style="width: 100%; height: 100%; object-fit: cover;">
+                        <?php else: ?>
+                            <i class="fas fa-user" style="font-size: 3rem; color: #ccc;"></i>
+                        <?php endif; ?>
+                    </div>
+                    <div>
+                        <label for="profile_pic" class="btn btn-outline" style="cursor: pointer;">
+                            <i class="fas fa-camera"></i> Change Photo
+                        </label>
+                        <input type="file" name="profile_pic" id="profile_pic" style="display: none;"
+                            onchange="document.getElementById('file-name').innerText = this.files[0].name">
+                        <p id="file-name" style="margin-top: 5px; font-size: 0.8rem; color: var(--text-muted);"></p>
+                    </div>
+                </div>
 
-            <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Change Password (Optional)</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" name="fullname" class="form-control" value="<?php echo $user['fullname']; ?>"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email (Cannot change)</label>
+                        <input type="email" class="form-control" value="<?php echo $user['email']; ?>" disabled
+                            pattern="^[a-zA-Z0-9._%+-]+@gmail\.com$" title="Must be a valid Gmail address">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" name="phone" class="form-control" value="<?php echo $user['phone']; ?>"
+                            placeholder="Enter 10-digit mobile number" pattern="[6-9][0-9]{9}" maxlength="10"
+                            title="Please enter a valid 10-digit mobile number starting with 6-9" required
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" name="dob" class="form-control" value="<?php echo $user['dob']; ?>">
+                    </div>
+                    <div class="form-group">
+                        <label>Gender</label>
+                        <select name="gender" class="form-control">
+                            <option value="">Select Gender</option>
+                            <option value="Male" <?php if ($user['gender'] == 'Male')
+                                echo 'selected'; ?>>Male</option>
+                            <option value="Female" <?php if ($user['gender'] == 'Female')
+                                echo 'selected'; ?>>Female
+                            </option>
+                            <option value="Other" <?php if ($user['gender'] == 'Other')
+                                echo 'selected'; ?>>Other</option>
+                        </select>
+                    </div>
+                </div>
 
-            <div class="form-group">
-                <label for="old_password">Old Password</label>
-                <input type="password" name="old_password" class="form-control" placeholder="Enter current password"
-                    oncopy="return false" onpaste="return false">
-            </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <textarea name="address" class="form-control" rows="3"><?php echo $user['address']; ?></textarea>
+                </div>
 
-            <div class="form-group">
-                <label for="new_password">New Password</label>
-                <input type="password" name="new_password" class="form-control" placeholder="Enter new password"
-                    oncopy="return false" onpaste="return false">
-            </div>
-
-            <div class="form-group">
-                <label for="confirm_password">Confirm New Password</label>
-                <input type="password" name="confirm_password" class="form-control" placeholder="Re-enter new password"
-                    oncopy="return false" onpaste="return false">
-            </div>
-
-            <div style="text-align: center; margin-top: 2rem;">
-                <button type="submit" class="btn btn-primary auth-btn" style="max-width: 200px;">Update Profile</button>
-                <a href="profile.php" class="btn btn-outline"
-                    style="margin-left: 10px; display: inline-block; padding: 12px 20px; text-decoration: none;">Cancel</a>
-            </div>
-        </form>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; margin-top: 20px;">
+                    Save Changes
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 
