@@ -1,6 +1,8 @@
 <?php
 include '../includes/db.php';
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $message = "";
 if (isset($_GET['success'])) {
@@ -14,7 +16,7 @@ if (isset($_GET['success'])) {
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $conn->real_escape_string($_POST['email']);
     $password = $_POST['password'];
-    $captcha = $_POST['captcha'];
+    $captcha = strtoupper($_POST['captcha']);
 
     if (!isset($_SESSION['captcha_code']) || $captcha !== $_SESSION['captcha_code']) {
         $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-exclamation-circle'></i> Invalid Captcha Code</div>";
@@ -118,11 +120,13 @@ include '../includes/header.php';
                         <a href="forgot_password.php"
                             style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">Forgot Password?</a>
                     </div>
-                    <div class="input-with-icon">
+                    <div class="input-with-icon" style="position: relative;">
                         <i class="fas fa-key"
                             style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
-                        <input type="password" name="password" class="form-control" placeholder="••••••••" required
-                            style="padding-left: 3.5rem;">
+                        <input type="password" name="password" id="password" class="form-control" placeholder="••••••••"
+                            required style="padding-left: 3.5rem; padding-right: 3.5rem;">
+                        <i class="fas fa-eye" id="togglePassword" title="Show Password"
+                            style="position: absolute; right: 1.25rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted); z-index: 10;"></i>
                     </div>
                 </div>
 
@@ -130,7 +134,8 @@ include '../includes/header.php';
                     <label style="color: var(--text-main); font-weight: 600;">Security Check</label>
                     <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center;">
                         <input type="text" name="captcha" class="form-control" placeholder="Code" required
-                            style="letter-spacing: 4px; font-weight: 700; text-align: center; text-transform: uppercase;">
+                            style="letter-spacing: 4px; font-weight: 700; text-align: center; text-transform: uppercase;"
+                            oninput="this.value = this.value.toUpperCase()">
 
                         <?php
                         $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -192,6 +197,20 @@ include '../includes/header.php';
             }
         };
         xhr.send();
+    });
+
+    const togglePassword = document.querySelector('#togglePassword');
+    const password = document.querySelector('#password');
+
+    togglePassword.addEventListener('click', function (e) {
+        // toggle the type attribute
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        // toggle the eye / eye slash icon
+        this.classList.toggle('fa-eye-slash');
+        this.classList.toggle('fa-eye');
+        // toggle the title
+        this.title = type === 'password' ? 'Show Password' : 'Hide Password';
     });
 </script>
 

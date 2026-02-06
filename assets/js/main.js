@@ -70,6 +70,11 @@ document.addEventListener('DOMContentLoaded', function () {
             const passwordValue = passwordInput.value;
             const passwordPattern = /^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).+$/;
 
+            if (passwordValue.length < 6) {
+                isValid = false;
+                messages.push("Password must be at least 6 characters.");
+            }
+
             if (!passwordPattern.test(passwordValue)) {
                 isValid = false;
                 messages.push("Password must contain at least one alphabet, one number, and one special character.");
@@ -92,6 +97,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (msg === 'login_success') messageText = "Welcome to TeleMed!";
         else if (msg === 'logged_out') messageText = "Successfully Logged Out!";
         else if (msg === 'prescription_saved') messageText = "Prescription Uploaded!";
+        else if (msg === 'appointment_booked') messageText = "Appointment Booked Successfully!";
+        else if (msg === 'payment_success') messageText = "Payment Successful!";
 
         if (messageText) {
             toast.innerHTML = `<i class="fas fa-check-circle"></i> ${messageText}`;

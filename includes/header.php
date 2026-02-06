@@ -27,7 +27,7 @@ if (isset($_SESSION['user_id']) && isset($_SESSION['role'])) {
     <!-- Main CSS -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/style.css">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <!-- Inline script to prevent FOUC (Flash of Unstyled Content) -->
     <script>

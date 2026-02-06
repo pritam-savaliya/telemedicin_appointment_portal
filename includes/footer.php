@@ -8,11 +8,14 @@
                 Your trusted partner for online medical consultations. Connect with top-rated doctors anywhere, anytime.
             </p>
             <div style="display: flex; gap: 15px;">
-                <a href="#" style="color: var(--text-muted); font-size: 1.2rem; transition: color 0.3s;"><i
+                <a href="https://www.facebook.com" target="_blank"
+                    style="color: var(--text-muted); font-size: 1.2rem; transition: color 0.3s;"><i
                         class="fab fa-facebook"></i></a>
-                <a href="#" style="color: var(--text-muted); font-size: 1.2rem; transition: color 0.3s;"><i
-                        class="fab fa-twitter"></i></a>
-                <a href="#" style="color: var(--text-muted); font-size: 1.2rem; transition: color 0.3s;"><i
+                <a href="https://x.com" target="_blank"
+                    style="color: var(--text-muted); font-size: 1.2rem; transition: color 0.3s;"><i
+                        class="fab fa-x-twitter"></i></a>
+                <a href="https://www.instagram.com" target="_blank"
+                    style="color: var(--text-muted); font-size: 1.2rem; transition: color 0.3s;"><i
                         class="fab fa-instagram"></i></a>
             </div>
         </div>

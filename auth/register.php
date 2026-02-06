@@ -41,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 // Attempt to send email
                 // Note: On localhost, mail() requires SMTP setup. We will also log it to a file for testing convenience.
-                mail($email, $subject, $msg_body, $headers);
+                @mail($email, $subject, $msg_body, $headers);
 
                 // Log for localhost testing
                 $log_content = "To: $email\nCode: $verification_code\n------------------\n";
