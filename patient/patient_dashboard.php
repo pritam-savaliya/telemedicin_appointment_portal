@@ -51,6 +51,20 @@ $patient_active = $conn->query("SELECT COUNT(*) as c FROM appointments WHERE pat
         </div>
     </div>
 
+    <!-- Emergency Action -->
+    <div onclick="window.location.href='emergency_booking.php'" class="card"
+        style="background: linear-gradient(135deg, #ff7675, #d63031); color: white; cursor: pointer; margin-bottom: 30px; transition: transform 0.2s; display: flex; align-items: center; justify-content: space-between; padding: 30px;">
+        <div>
+            <h2 style="margin: 0; color: white; display: flex; align-items: center; gap: 15px;">
+                <i class="fas fa-ambulance" style="font-size: 2rem;"></i> Emergency Assistance
+            </h2>
+            <p style="margin: 10px 0 0; color: rgba(255,255,255,0.9);">
+                Immediate booking for critical situations. Find nearby hospitals instantly.
+            </p>
+        </div>
+        <i class="fas fa-chevron-right" style="font-size: 1.5rem;"></i>
+    </div>
+
     <!-- Quick Actions -->
     <div
         style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 4rem;">
@@ -97,7 +111,195 @@ $patient_active = $conn->query("SELECT COUNT(*) as c FROM appointments WHERE pat
                 account preference.</p>
             <a href="../profile.php" class="btn btn-primary">Edit Profile</a>
         </div>
+
+        <div class="card" style="text-align: center; padding: 40px 30px;">
+            <div
+                style="background: rgba(46, 204, 113, 0.1); width: 80px; height: 80px; margin: 0 auto 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--success-color);">
+                <i class="fas fa-share-alt" style="font-size: 2.5rem;"></i>
+            </div>
+            <h3 style="margin-bottom: 15px;">Share App</h3>
+            <p style="color: var(--text-muted); margin-bottom: 25px;">Share TeleMed with friends and family via Link or
+                QR.</p>
+            <button onclick="openShareModal()" class="btn btn-primary">Share Now</button>
+        </div>
     </div>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeShareModal()">&times;</span>
+            <div style="text-align: center;">
+                <h2 style="color: var(--secondary-color); margin-bottom: 15px;">Share TeleMed</h2>
+                <p style="color: var(--text-muted); margin-bottom: 25px;">Scan the QR code or copy the link below.</p>
+
+                <div
+                    style="background: white; padding: 15px; display: inline-block; border-radius: 10px; border: 1px solid #eee; margin-bottom: 20px;">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=<?php echo urlencode(BASE_URL); ?>"
+                        alt="App QR Code" title="Scan to visit">
+                </div>
+
+                <div class="input-group" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <input type="text" value="<?php echo BASE_URL; ?>" id="shareLink" readonly class="form-control"
+                        style="text-align: center;">
+                    <button onclick="copyToClipboard()" class="btn btn-secondary" title="Copy Link">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <button onclick="toggleEmailShare()" class="btn btn-primary" title="Send via Email">
+                        <i class="fas fa-envelope"></i>
+                    </button>
+                </div>
+
+                <!-- Email Share Section -->
+                <div id="emailShareSection" style="display: none; margin-bottom: 20px; animation: fadeIn 0.3s;">
+                    <div style="display: flex; gap: 10px;">
+                        <input type="email" id="shareEmail" class="form-control" placeholder="Enter recipient's email"
+                            required>
+                        <button onclick="sendShareEmail()" class="btn btn-primary">Send</button>
+                    </div>
+                </div>
+
+                <p id="copyMsg"
+                    style="color: var(--success-color); font-size: 0.9rem; opacity: 0; transition: opacity 0.3s;">Link
+                    copied to clipboard!</p>
+                <p id="emailMsg" style="font-size: 0.9rem; display: none; margin-top: 10px;"></p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 450px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+
+    <script>
+        function openShareModal() {
+            document.getElementById('shareModal').style.display = 'flex';
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').style.display = 'none';
+        }
+
+        function toggleEmailShare() {
+            var section = document.getElementById('emailShareSection');
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                document.getElementById('shareEmail').focus();
+            } else {
+                section.style.display = 'none';
+            }
+        }
+
+        function sendShareEmail() {
+            var email = document.getElementById('shareEmail').value;
+            var msg = document.getElementById('emailMsg');
+
+            if (!email) {
+                alert('Please enter an email address');
+                return;
+            }
+
+            msg.style.display = 'block';
+            msg.style.color = 'var(--text-muted)';
+            msg.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+            var formData = new FormData();
+            formData.append('email', email);
+
+            fetch('<?php echo BASE_URL; ?>api/send_share_email.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        msg.style.color = 'var(--success-color)';
+                        msg.innerText = 'Email sent successfully!';
+                        document.getElementById('shareEmail').value = '';
+                        setTimeout(() => { toggleEmailShare(); msg.style.display = 'none'; }, 2000);
+                    } else {
+                        msg.style.color = 'var(--danger-color)';
+                        msg.innerText = data.error || 'Failed to send email.';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    msg.style.color = 'var(--danger-color)';
+                    msg.innerText = 'Error sending email.';
+                });
+        }
+
+        function copyToClipboard() {
+            var copyText = document.getElementById("shareLink");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+            navigator.clipboard.writeText(copyText.value).then(function () {
+                var msg = document.getElementById("copyMsg");
+                msg.style.opacity = "1";
+                setTimeout(function () {
+                    msg.style.opacity = "0";
+                }, 2000);
+            }, function (err) {
+                console.error('Async: Could not copy text: ', err);
+            });
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            var modal = document.getElementById('shareModal');
+            if (event.target == modal) {
+                closeShareModal();
+            }
+        }
+    </script>
 
     <?php
     $notif_sql = "SELECT * FROM notifications WHERE user_id = $user_id AND is_read = FALSE ORDER BY created_at DESC";
@@ -111,6 +313,8 @@ $patient_active = $conn->query("SELECT COUNT(*) as c FROM appointments WHERE pat
                  ORDER BY appointments.date DESC LIMIT 5";
     $chat_result = $conn->query($chat_sql);
     ?>
+
+
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 40px;">
 

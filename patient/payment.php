@@ -11,10 +11,20 @@ if (!isset($_SESSION['user_id']) || !isset($_SESSION['booking_details'])) {
 $booking = $_SESSION['booking_details'];
 $amount = 500; // Fixed Consultation Fee in Rupees
 
-// Fetch Doctor Details for display
-$doc_id = $booking['doctor_id'];
-$doc_res = $conn->query("SELECT fullname FROM users WHERE id = $doc_id");
-$doctor_name = $doc_res->fetch_assoc()['fullname'];
+// Determine if Emergency
+$is_emergency = isset($booking['is_emergency']) && $booking['is_emergency'];
+$doctor_name = "Emergency Response Team"; // Default
+
+if (!$is_emergency) {
+    // Fetch Doctor Details for display only if not emergency
+    $doc_id = $booking['doctor_id'];
+    $doc_res = $conn->query("SELECT fullname FROM users WHERE id = $doc_id");
+    if ($doc_res && $doc_res->num_rows > 0) {
+        $doctor_name = $doc_res->fetch_assoc()['fullname'];
+    }
+} else {
+    $doctor_name = $booking['hospital_name'] ?? "Nearby Hospital";
+}
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Simulate Payment Processing based on Method
@@ -24,11 +34,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // For this simulation, we consider all submitted forms as "Paid".
 
     $patient_id = $_SESSION['user_id'];
-    $doctor_id = $booking['doctor_id'];
     $date = $booking['date'];
     $time = $booking['time'];
     $status = 'confirmed'; // Auto-confirm after payment
     $payment_status = 'paid';
+
+    // Emergency specifics
+    $doctor_id = $is_emergency ? 'NULL' : "'" . $booking['doctor_id'] . "'";
+    $hospital_id = $is_emergency ? "'" . $booking['hospital_id'] . "'" : 'NULL';
+    $emergency_flag = $is_emergency ? 1 : 0;
 
     // Generate simulated Transaction ID
     $prefix = 'TXN';
@@ -42,8 +56,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $transaction_id = $prefix . strtoupper(uniqid());
 
     // 1. Insert Appointment
-    $sql_apt = "INSERT INTO appointments (patient_id, doctor_id, date, time, status, payment_status) 
-                VALUES ('$patient_id', '$doctor_id', '$date', '$time', '$status', '$payment_status')";
+    // Note: ensure your table has doctor_id as NULLABLE if you use NULL
+    // Also ensuring columns map correctly to your schema
+    $sql_apt = "INSERT INTO appointments (patient_id, doctor_id, hospital_id, is_emergency, date, time, status, payment_status) 
+                VALUES ('$patient_id', $doctor_id, $hospital_id, $emergency_flag, '$date', '$time', '$status', '$payment_status')";
 
     if ($conn->query($sql_apt) === TRUE) {
         $appointment_id = $conn->insert_id;
@@ -55,7 +71,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         // 3. Send Email Receipt
         $to = $_SESSION['email'];
-        $subject = "Payment Receipt - TeleMed";
+        $subject = $is_emergency ? "Emergency Booking Confirmed - TeleMed" : "Payment Receipt - TeleMed";
+
+        $provider_label = $is_emergency ? "Hospital" : "Doctor";
+        $provider_name = $is_emergency ? $booking['hospital_name'] : "Dr. $doctor_name";
+
         $message = "
         <html>
         <head>
@@ -64,15 +84,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <body style='font-family: Arial, sans-serif;'>
           <h2 style='color: #2ecc71;'>Payment Successful</h2>
           <p>Dear " . explode(' ', $_SESSION['fullname'])[0] . ",</p>
-          <p>Thank you for your payment. Your appointment has been confirmed.</p>
+          <p>Thank you for your payment. Your " . ($is_emergency ? "emergency request" : "appointment") . " has been confirmed.</p>
           <table border='0' cellpadding='10' cellspacing='0' style='background: #f9f9f9; width: 100%; max-width: 600px; border-radius: 8px;'>
             <tr>
                 <td style='border-bottom: 1px solid #eee;'><strong>Transaction ID</strong></td>
                 <td style='border-bottom: 1px solid #eee;'>$transaction_id</td>
             </tr>
             <tr>
-                <td style='border-bottom: 1px solid #eee;'><strong>Doctor</strong></td>
-                <td style='border-bottom: 1px solid #eee;'>Dr. $doctor_name</td>
+                <td style='border-bottom: 1px solid #eee;'><strong>$provider_label</strong></td>
+                <td style='border-bottom: 1px solid #eee;'>$provider_name</td>
             </tr>
             <tr>
                 <td style='border-bottom: 1px solid #eee;'><strong>Amount</strong></td>
@@ -100,11 +120,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $log_entry = "To: $to | Subject: $subject | txn: $transaction_id\n";
         file_put_contents("../email_log.txt", $log_entry, FILE_APPEND);
 
+        // Prepare redirect info before unsetting session
+        $redirect_url = "patient_dashboard.php?msg=appointment_booked";
+        if ($is_emergency) {
+            $h_id = $booking['hospital_id'];
+            $redirect_url = "emergency_success.php?hospital_id=$h_id";
+        }
+
         // 4. Clear Session
         unset($_SESSION['booking_details']);
 
         // 4. Redirect
-        header("Location: patient_dashboard.php?msg=appointment_booked");
+        header("Location: " . $redirect_url);
         exit();
     } else {
         $error = "Error booking appointment: " . $conn->error;

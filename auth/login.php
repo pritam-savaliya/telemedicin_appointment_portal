@@ -107,9 +107,9 @@ include '../includes/header.php';
                     <label style="color: var(--text-main); font-weight: 600;">Email Address</label>
                     <div class="input-with-icon">
                         <i class="fas fa-envelope"
-                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
-                        <input type="email" name="email" class="form-control" placeholder="name@company.com" required
-                            style="padding-left: 3.5rem;">
+                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 5;"></i>
+                        <input type="email" name="email" id="email" class="form-control" placeholder="name@company.com"
+                            required style="padding-left: 3.5rem;" autocomplete="username">
                     </div>
                 </div>
 
@@ -122,9 +122,10 @@ include '../includes/header.php';
                     </div>
                     <div class="input-with-icon" style="position: relative;">
                         <i class="fas fa-key"
-                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 5;"></i>
                         <input type="password" name="password" id="password" class="form-control" placeholder="••••••••"
-                            required style="padding-left: 3.5rem; padding-right: 3.5rem;">
+                            required style="padding-left: 3.5rem; padding-right: 3.5rem;"
+                            autocomplete="current-password">
                         <i class="fas fa-eye" id="togglePassword" title="Show Password"
                             style="position: absolute; right: 1.25rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted); z-index: 10;"></i>
                     </div>

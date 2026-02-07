@@ -55,7 +55,7 @@ if (isset($_GET['code'])) {
                 // User exists, update google_id
                 $row = $result->fetch_assoc();
                 $user_id = $row['id'];
-                $update_sql = "UPDATE users SET google_id = '$google_id' WHERE id = '$user_id'";
+                $update_sql = "UPDATE users SET google_id = '$google_id', email_verified = 1 WHERE id = '$user_id'";
                 $conn->query($update_sql);
                 loginUser($row);
             } else {
@@ -64,7 +64,7 @@ if (isset($_GET['code'])) {
                 $role = 'patient'; // Default role
                 $is_approved = 1; // Auto-approve Google users
 
-                $insert_sql = "INSERT INTO users (fullname, email, password, role, is_approved, google_id) VALUES ('$name', '$email', '$password', '$role', $is_approved, '$google_id')";
+                $insert_sql = "INSERT INTO users (fullname, email, password, role, is_approved, google_id, email_verified) VALUES ('$name', '$email', '$password', '$role', $is_approved, '$google_id', 1)";
 
                 if ($conn->query($insert_sql) === TRUE) {
                     $new_user_id = $conn->insert_id;

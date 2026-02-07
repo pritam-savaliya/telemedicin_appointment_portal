@@ -319,6 +319,17 @@ header {
     background: var(--bg-card);
 }
 
+/* 🔧 Input With Icon Repair */
+.input-with-icon {
+    position: relative;
+    width: 100%;
+}
+
+.input-with-icon i {
+    z-index: 10;
+    pointer-events: none;
+}
+
 /* 🚀 Special Sections */
 .hero {
     padding: 120px 0 160px;

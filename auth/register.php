@@ -8,14 +8,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fullname = $conn->real_escape_string($_POST['fullname']);
     $email = $conn->real_escape_string($_POST['email']);
     $password = $_POST['password'];
-    $role = $conn->real_escape_string($_POST['role']);
+    $confirm_password = $_POST['confirm_password'];
+    $role = 'patient'; // Force role to patient
 
-    if (!in_array($role, ['patient', 'doctor'])) {
-        $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-exclamation-circle'></i> Invalid role selected</div>";
+    if (false) { // Deprecated role check
+        $message = "Invalid role";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-envelope-open-text'></i> Invalid email format</div>";
     } elseif (strlen($password) < 6) {
         $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-key'></i> Password must be at least 6 characters</div>";
+    } elseif ($password !== $confirm_password) {
+        $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-exclamation-triangle'></i> Passwords do not match</div>";
     } elseif ($password === 'ad@1308') {
         $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-shield-alt'></i> Prohibited password selection</div>";
     } else {
@@ -27,29 +30,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-user-check'></i> Email already registered!</div>";
         } else {
             $is_approved = ($role === 'patient') ? 1 : 0;
-            $verification_code = rand(100000, 999999);
+            // Verification code is no longer needed but column might expect it or it's nullable. 
+            // Setting it to NULL or 0 is fine if column allows nullable, or just a dummy value if strict.
+            // Let's check schema/previous usage. Previous usage had it. 
+            // We'll just leave it as 0 or empty since we verify immediately.
 
-            // Insert user with verification code and email_verified = 0
+            // Insert user with email_verified = 1 (Auto Verified)
             $sql = "INSERT INTO users (fullname, email, password, role, is_approved, verification_code, email_verified) 
-                    VALUES ('$fullname', '$email', '$hashed_password', '$role', $is_approved, '$verification_code', 0)";
+                    VALUES ('$fullname', '$email', '$hashed_password', '$role', $is_approved, '0', 1)";
 
             if ($conn->query($sql) === TRUE) {
-                // Send Verification Email
-                $subject = "Verify Your Email - TeleMed";
-                $msg_body = "Hi $fullname,\n\nThank you for registering. Your verification code is: $verification_code\n\nPlease enter this code to verify your account.";
-                $headers = "From: no-reply@telemed.com";
+                // Registration successful - No email verification needed
+                // Optional: Auto-login code could go here, but redirect to login is requested standard.
 
-                // Attempt to send email
-                // Note: On localhost, mail() requires SMTP setup. We will also log it to a file for testing convenience.
-                @mail($email, $subject, $msg_body, $headers);
-
-                // Log for localhost testing
-                $log_content = "To: $email\nCode: $verification_code\n------------------\n";
-                file_put_contents("../email_log.txt", $log_content, FILE_APPEND);
-
-                // Redirect to verification page
-                $_SESSION['verification_email'] = $email;
-                header("Location: verify_email.php");
+                header("Location: login.php?msg=registered");
                 exit();
             } else {
                 $message = "<div class='alert-error'>Error: " . $conn->error . "</div>";
@@ -98,9 +92,9 @@ include '../includes/header.php';
                         Name</label>
                     <div class="input-with-icon">
                         <i class="fas fa-user"
-                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 5;"></i>
                         <input type="text" name="fullname" class="form-control" placeholder="John Doe" required
-                            style="padding-left: 3.5rem;">
+                            style="padding-left: 3.5rem;" autocomplete="name">
                     </div>
                 </div>
 
@@ -110,9 +104,9 @@ include '../includes/header.php';
                         Address</label>
                     <div class="input-with-icon">
                         <i class="fas fa-envelope"
-                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
-                        <input type="email" name="email" class="form-control" placeholder="email@example.com" required
-                            style="padding-left: 3.5rem;">
+                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 5;"></i>
+                        <input type="email" name="email" id="email" class="form-control" placeholder="email@example.com"
+                            required style="padding-left: 3.5rem;" autocomplete="username">
                     </div>
                 </div>
 
@@ -122,37 +116,26 @@ include '../includes/header.php';
                         Password</label>
                     <div class="input-with-icon">
                         <i class="fas fa-lock"
-                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
-                        <input type="password" name="password" class="form-control" placeholder="••••••••" required
-                            style="padding-left: 3.5rem;">
+                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 5;"></i>
+                        <input type="password" name="password" id="password" class="form-control" placeholder="••••••••"
+                            required style="padding-left: 3.5rem;" autocomplete="new-password">
                     </div>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 0;">
                     <label
-                        style="color: var(--text-main); font-weight: 600; display: block; margin-bottom: 0.75rem;">Account
-                        Type</label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <label style="cursor: pointer;">
-                            <input type="radio" name="role" value="patient" checked style="display: none;"
-                                onchange="updateRoleUI(this)">
-                            <div class="role-selector active" id="role-patient"
-                                style="border: 2px solid var(--primary); background: var(--primary-soft); color: var(--primary); padding: 1rem; border-radius: var(--radius-sm); text-align: center; font-weight: 700; transition: var(--transition);">
-                                <i class="fas fa-user-injured"
-                                    style="display: block; font-size: 1.2rem; margin-bottom: 5px;"></i> Patient
-                            </div>
-                        </label>
-                        <label style="cursor: pointer;">
-                            <input type="radio" name="role" value="doctor" style="display: none;"
-                                onchange="updateRoleUI(this)">
-                            <div class="role-selector" id="role-doctor"
-                                style="border: 2px solid var(--border-color); color: var(--text-muted); padding: 1rem; border-radius: var(--radius-sm); text-align: center; font-weight: 700; transition: var(--transition);">
-                                <i class="fas fa-user-md"
-                                    style="display: block; font-size: 1.2rem; margin-bottom: 5px;"></i> Doctor
-                            </div>
-                        </label>
+                        style="color: var(--text-main); font-weight: 600; display: block; margin-bottom: 0.75rem;">Confirm
+                        Password</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock"
+                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 5;"></i>
+                        <input type="password" name="confirm_password" id="confirm_password" class="form-control"
+                            placeholder="••••••••" required style="padding-left: 3.5rem;" autocomplete="new-password">
                     </div>
                 </div>
+
+                <!-- Doctor registration removed as per policy -->
+                <input type="hidden" name="role" value="patient">
 
                 <button type="submit" class="btn btn-primary"
                     style="width: 100%; padding: 1rem; font-size: 1.1rem; margin-top: 1rem;">

@@ -32,7 +32,11 @@ $doctors_result = $conn->query($sql_doctors);
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2>Manage Doctors</h2>
-        <a href="<?php echo BASE_URL; ?>admin/admin_dashboard.php" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        <div style="display: flex; gap: 10px;">
+            <a href="add_doctor.php" class="btn btn-primary"><i class="fas fa-plus"></i> Add New Doctor</a>
+            <a href="<?php echo BASE_URL; ?>admin/admin_dashboard.php" class="btn btn-outline"><i
+                    class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        </div>
     </div>
 
     <?php if ($message != "")

@@ -64,14 +64,19 @@ $doctors_result = $conn->query($doctors_sql);
                     <i class="fas fa-user-md"></i>
                     <select name="doctor_id" id="doctor" class="form-control" required onchange="fetchSlots()">
                         <option value="">-- Choose a Doctor --</option>
-                        <?php while ($row = $doctors_result->fetch_assoc()): ?>
+                        <?php
+                        $selected_doc_id = isset($_GET['doctor_id']) ? intval($_GET['doctor_id']) : 0;
+                        while ($row = $doctors_result->fetch_assoc()):
+                            ?>
                             <?php
                             $rating_display = "";
                             if ($row['avg_rating']) {
                                 $rating_display = " (" . number_format($row['avg_rating'], 1) . " ⭐)";
                             }
+                            $selected = ($row['id'] == $selected_doc_id) ? 'selected' : '';
                             ?>
-                            <option value="<?php echo $row['id']; ?>">Dr. <?php echo $row['fullname'] . $rating_display; ?>
+                            <option value="<?php echo $row['id']; ?>" <?php echo $selected; ?>>Dr.
+                                <?php echo $row['fullname'] . $rating_display; ?>
                             </option>
                         <?php endwhile; ?>
                     </select>
