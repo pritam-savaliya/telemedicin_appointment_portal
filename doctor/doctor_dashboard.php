@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] != 'doctor') {
 
 // Handle Status Updates
 if (isset($_GET['action']) && isset($_GET['id'])) {
-    $appt_id = $_GET['id'];
+    $appt_id = intval($_GET['id']);
     $status = $_GET['action']; // 'confirmed' or 'rejected'
 
     // Security check to ensure status is valid
@@ -155,7 +155,7 @@ $result = $conn->query($sql);
                                             style="background: #e9ecef; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
                                             <i class="fas fa-user" style="font-size: 0.8rem;"></i>
                                         </div>
-                                        <?php echo $row['patient_name']; ?>
+                                        <?php echo htmlspecialchars($row['patient_name']); ?>
                                         <a href="view_patient_records.php?patient_id=<?php echo $row['patient_id']; ?>"
                                             title="View Medical Records"
                                             style="color: var(--primary-color); font-size: 0.9rem;">

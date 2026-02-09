@@ -77,13 +77,13 @@ $patients_result = $conn->query($sql_patients);
                                     <?php echo $row['id']; ?>
                                 </td>
                                 <td style="font-weight: 600;">
-                                    <?php echo $row['fullname']; ?>
+                                    <?php echo htmlspecialchars($row['fullname']); ?>
                                 </td>
                                 <td>
-                                    <?php echo $row['email']; ?>
+                                    <?php echo htmlspecialchars($row['email']); ?>
                                 </td>
                                 <td>
-                                    <?php echo $row['phone'] ? $row['phone'] : '<span class="text-muted">N/A</span>'; ?>
+                                    <?php echo $row['phone'] ? htmlspecialchars($row['phone']) : '<span class="text-muted">N/A</span>'; ?>
                                 </td>
                                 <td>
                                     <?php echo date('M d, Y', strtotime($row['created_at'])); ?>

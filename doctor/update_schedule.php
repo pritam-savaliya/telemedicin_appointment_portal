@@ -7,9 +7,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['user_id']) && $_SES
     $days = $_POST['days'];
 
     foreach ($days as $day => $data) {
+        $day = $conn->real_escape_string($day);
         $is_active = isset($data['active']) ? 1 : 0;
-        $start = $data['start'];
-        $end = $data['end'];
+        $start = $conn->real_escape_string($data['start']);
+        $end = $conn->real_escape_string($data['end']);
 
         // Use Upsert (INSERT ... ON DUPLICATE KEY UPDATE) logic
         // But since we have a unique constraint on (doctor_id, day_of_week)

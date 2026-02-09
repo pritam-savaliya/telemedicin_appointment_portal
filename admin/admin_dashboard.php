@@ -387,8 +387,8 @@ $users_result = $conn->query($sql_users);
 
                             echo "<tr>";
                             echo "<td>#" . $appt['id'] . "</td>";
-                            echo "<td>" . $appt['patient_name'] . "</td>";
-                            echo "<td style='color: var(--primary-color);'><i class='fas fa-user-md'></i> " . $appt['doctor_name'] . "</td>";
+                            echo "<td>" . htmlspecialchars($appt['patient_name']) . "</td>";
+                            echo "<td style='color: var(--primary-color);'><i class='fas fa-user-md'></i> " . htmlspecialchars($appt['doctor_name']) . "</td>";
                             echo "<td>" . $appt['date'] . " <span style='font-size:0.85em; color:var(--text-muted);'>" . date("h:i A", strtotime($appt['time'])) . "</span></td>";
                             echo "<td><span class='badge " . $badge_class . "'>" . ucfirst($status) . "</span></td>";
                             echo "</tr>";

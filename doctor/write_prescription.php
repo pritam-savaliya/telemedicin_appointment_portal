@@ -56,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $patient_email = $appt['patient_email'];
             $subject = "Prescription Issued - TeleMed";
             $link = BASE_URL . "patient/view_prescription.php?appointment_id=$appointment_id";
-            $body = "Hi " . $appt['patient_name'] . ",<br><br>Dr. " . $_SESSION['fullname'] . " has issued a prescription for you.<br><br><a href='$link'>Click here to view prescription</a>";
+            $body = "Hi " . htmlspecialchars($appt['patient_name']) . ",<br><br>Dr. " . htmlspecialchars($_SESSION['fullname']) . " has issued a prescription for you.<br><br><a href='$link'>Click here to view prescription</a>";
             sendEmail($patient_email, $subject, $body);
 
             header("Location: doctor_dashboard.php?msg=prescription_saved");
@@ -77,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <h2 style="margin-bottom: 5px;">Write Prescription</h2>
                 <p style="color: var(--text-muted);">Patient: <span
                         style="font-weight: 600; color: var(--primary-color);">
-                        <?php echo $appt['patient_name']; ?>
+                        <?php echo htmlspecialchars($appt['patient_name']); ?>
                     </span></p>
             </div>
             <a href="<?php echo BASE_URL; ?>doctor/doctor_dashboard.php" class="btn btn-outline"><i

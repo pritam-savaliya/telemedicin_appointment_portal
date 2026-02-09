@@ -76,7 +76,7 @@ $doctors_result = $conn->query($doctors_sql);
                             $selected = ($row['id'] == $selected_doc_id) ? 'selected' : '';
                             ?>
                             <option value="<?php echo $row['id']; ?>" <?php echo $selected; ?>>Dr.
-                                <?php echo $row['fullname'] . $rating_display; ?>
+                                <?php echo htmlspecialchars($row['fullname']) . $rating_display; ?>
                             </option>
                         <?php endwhile; ?>
                     </select>

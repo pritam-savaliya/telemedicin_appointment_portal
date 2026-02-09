@@ -67,7 +67,7 @@ $doctors_result = $conn->query($sql_doctors);
                                     <?php echo $row['id']; ?>
                                 </td>
                                 <td style="font-weight: 600;">Dr.
-                                    <?php echo $row['fullname']; ?>
+                                    <?php echo htmlspecialchars($row['fullname']); ?>
                                 </td>
                                 <td>
                                     <?php echo $row['email']; ?>
