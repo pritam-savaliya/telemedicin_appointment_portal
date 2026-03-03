@@ -307,8 +307,8 @@ $users_result = $conn->query($sql_users);
                             <?php $badge_class = "badge-" . $row['role']; ?>
                             <tr>
                                 <td>#<?php echo $row['id']; ?></td>
-                                <td style="font-weight: 600;"><?php echo $row['fullname']; ?></td>
-                                <td><?php echo $row['email']; ?></td>
+                                <td style="font-weight: 600;"><?php echo htmlspecialchars($row['fullname']); ?></td>
+                                <td><?php echo htmlspecialchars($row['email']); ?></td>
                                 <td>
                                     <span class="badge <?php echo $badge_class; ?>">
                                         <?php echo ucfirst($row['role']); ?>

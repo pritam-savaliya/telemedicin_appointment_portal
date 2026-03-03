@@ -264,6 +264,39 @@ header {
     color: var(--primary);
 }
 
+.btn-danger {
+    background: var(--accent);
+    color: var(--text-on-primary);
+    border: none;
+    box-shadow: 0 4px 10px rgba(244, 63, 94, 0.3);
+}
+
+.btn-danger:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(244, 63, 94, 0.4);
+}
+
+/* 🔔 Alerts / Notifications */
+.alert-success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 2rem;
+    font-weight: 600;
+}
+
+.alert-error {
+    background: rgba(244, 63, 94, 0.1);
+    color: var(--accent);
+    border: 1px solid rgba(244, 63, 94, 0.2);
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 2rem;
+    font-weight: 600;
+}
+
 /* 🃏 Components: Cards */
 .card {
     background: var(--bg-card);
