@@ -49,7 +49,7 @@ $result = $conn->query($sql);
     </div>
 
     <!-- Illness Selector -->
-    <div class="card" style="margin-bottom: 30px; border-left: 5px solid var(--primary-color);">
+    <div class="glass-card" style="margin-bottom: 30px; border-left: 5px solid var(--primary);">
         <h3 style="margin-bottom: 15px;">What is the emergency?</h3>
         <div class="form-group">
             <label for="illnessSelect">Select Illness / Condition</label>
@@ -71,10 +71,13 @@ $result = $conn->query($sql);
     </div>
 
     <!-- Hospitals Table -->
-    <div id="hospitalsContainer" class="card" style="padding: 0; overflow: hidden; display: none;">
+    <div id="hospitalsContainer" class="glass-card" style="padding: 0; overflow: hidden; display: none;">
+        <div style="padding: 1.5rem 2rem; border-bottom: 1px solid var(--border-glass);">
+            <h3 style="margin: 0; color: var(--primary);"><i class="fas fa-hospital-user"></i> Available Emergency Facilities</h3>
+        </div>
         <div style="overflow-x: auto;">
             <table style="width: 100%; border-collapse: collapse;">
-                <thead style="background: var(--primary-color); color: white;">
+                <thead style="background: var(--primary); color: white;">
                     <tr>
                         <th style="padding: 15px; text-align: left;">Hospital Name</th>
                         <th style="padding: 15px; text-align: left;">Specialty</th>
@@ -91,7 +94,7 @@ $result = $conn->query($sql);
                                 <td style="padding: 15px; font-weight: 500;">
                                     <?php echo $row['name']; ?>
                                 </td>
-                                <td style="padding: 15px; color: var(--secondary-color);">
+                                <td style="padding: 15px; color: var(--secondary);">
                                     <span
                                         style="background: rgba(108, 92, 231, 0.1); padding: 5px 10px; border-radius: 15px; font-size: 0.85rem;">
                                         <?php echo $row['specialty']; ?>
@@ -103,7 +106,7 @@ $result = $conn->query($sql);
                                 <td style="padding: 15px;">
                                     <a href="tel:<?php echo $row['phone']; ?>"
                                         style="color: var(--text-main); text-decoration: none;">
-                                        <i class="fas fa-phone-alt" style="color: var(--success-color); margin-right: 5px;"></i>
+                                        <i class="fas fa-phone-alt" style="color: var(--success); margin-right: 5px;"></i>
                                         <?php echo $row['phone']; ?>
                                     </a>
                                 </td>

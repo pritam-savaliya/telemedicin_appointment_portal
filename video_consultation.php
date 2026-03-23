@@ -3,12 +3,12 @@ session_start();
 include 'includes/db.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    header("Location: " . BASE_URL . "auth/login.php");
     exit();
 }
 
 if (!isset($_GET['appointment_id'])) {
-    header("Location: home.php");
+    header("Location: " . BASE_URL . "index.php");
     exit();
 }
 

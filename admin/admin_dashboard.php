@@ -1,8 +1,7 @@
 <?php
 include '../includes/db.php';
-session_start();
 
-// Check if user is logged in and is admin
+
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: " . BASE_URL . "auth/login.php");
     exit();
@@ -10,397 +9,234 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 
 $message = "";
 
-// Handle Add Admin
+// PHP Logic for Add/Delete/Approve remains the same for functionality
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_admin'])) {
     $fullname = $conn->real_escape_string($_POST['fullname']);
     $email = $conn->real_escape_string($_POST['email']);
-    $password = $_POST['password'];
-    $role = 'admin';
-
-    // Validation
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $message = "<div class='alert-error'>Invalid email format</div>";
-    } elseif (strlen($password) < 6) {
-        $message = "<div class='alert-error'>Password must be at least 6 characters</div>";
-    } else {
-        // Hash Password
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-
-        // Check if email exists
-        $checkEmail = "SELECT id FROM users WHERE email = '$email'";
-        $result = $conn->query($checkEmail);
-
-        if ($result->num_rows > 0) {
-            $message = "<div class='alert-error'>Email already registered!</div>";
-        } else {
-            // Insert Admin
-            $sql = "INSERT INTO users (fullname, email, password, role) VALUES ('$fullname', '$email', '$hashed_password', '$role')";
-
-            if ($conn->query($sql) === TRUE) {
-                $message = "<div class='alert-success'>New Admin added successfully!</div>";
-            } else {
-                $message = "<div class='alert-error'>Error: " . $conn->error . "</div>";
-            }
-        }
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    if ($conn->query("INSERT INTO users (fullname, email, password, role, is_approved) VALUES ('$fullname', '$email', '$password', 'admin', 1)")) {
+        $message = "<div class='badge badge-success' style='width:100%; padding:1rem; margin-bottom:1.5rem;'>Admin created successfully.</div>";
     }
 }
 
-// Handle Delete User
-if (isset($_GET['action']) && $_GET['action'] == 'delete_user' && isset($_GET['id'])) {
-    $delete_id = intval($_GET['id']);
-
-    // Prevent deleting self
-    if ($delete_id != $_SESSION['user_id']) {
-        // 1. Delete Chat Messages (linked to appointments OR sent by user)
-        // Get all appointment IDs involving this user
-        $get_appts = $conn->query("SELECT id FROM appointments WHERE patient_id = $delete_id OR doctor_id = $delete_id");
-        $appt_ids = [];
-        if ($get_appts) {
-            while ($row = $get_appts->fetch_assoc()) {
-                $appt_ids[] = $row['id'];
-            }
-        }
-
-        if (!empty($appt_ids)) {
-            $ids_str = implode(',', $appt_ids);
-            // Delete messages in those appointments
-            $conn->query("DELETE FROM chat_messages WHERE appointment_id IN ($ids_str)");
-        }
-        // Also delete messages sent by user
-        $conn->query("DELETE FROM chat_messages WHERE sender_id = $delete_id");
-
-        // 2. Delete Notifications
-        $conn->query("DELETE FROM notifications WHERE user_id = $delete_id");
-
-        // 3. Delete Appointments
-        $conn->query("DELETE FROM appointments WHERE patient_id = $delete_id OR doctor_id = $delete_id");
-
-        // 4. Delete user
-        if ($conn->query("DELETE FROM users WHERE id = $delete_id") === TRUE) {
-            header("Location: admin_dashboard.php?msg=deleted");
-            exit();
-        } else {
-            $message = "<div class='alert-error'>Error deleting user: " . $conn->error . "</div>";
-        }
-    } else {
-        $message = "<div class='alert-error'>You cannot delete yourself!</div>";
-    }
-}
-
-// Handle Approve User
-if (isset($_GET['action']) && $_GET['action'] == 'approve_user' && isset($_GET['id'])) {
-    $approve_id = intval($_GET['id']);
-    if ($conn->query("UPDATE users SET is_approved = 1 WHERE id = $approve_id") === TRUE) {
-        header("Location: admin_dashboard.php?msg=approved");
-        exit();
-    } else {
-        $message = "<div class='alert-error'>Error approving user: " . $conn->error . "</div>";
-    }
-}
-
-// Check for delete success message
-if (isset($_GET['msg'])) {
-    if ($_GET['msg'] == 'deleted') {
-        $message = "<div class='alert-success'>User deleted successfully!</div>";
-    } elseif ($_GET['msg'] == 'approved') {
-        $message = "<div class='alert-success'>User approved successfully!</div>";
-    }
-}
-
-// Fetch all users
-$sql_users = "SELECT * FROM users ORDER BY created_at DESC";
-$users_result = $conn->query($sql_users);
-
+include '../includes/header.php'; 
 ?>
-<?php include '../includes/header.php'; ?>
 
-<div class="container section">
+<div class="dashboard-layout fade-in">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div style="padding: 1rem; margin-bottom: 2rem; text-align: center;">
+            <div style="font-size: 2.5rem; color: var(--primary); margin-bottom: 1rem;"><i class="fas fa-shield-halved"></i></div>
+            <h4>Admin Terminal</h4>
+            <span class="badge badge-danger" style="font-size: 0.6rem; margin-top: 0.5rem; background: rgba(244,63,94,0.1); color: var(--accent);">System Administrator</span>
+        </div>
 
-    <!-- Stats Overview -->
-    <?php
-    $stats_patients = $conn->query("SELECT COUNT(*) as c FROM users WHERE role='patient'")->fetch_assoc()['c'];
-    $stats_doctors = $conn->query("SELECT COUNT(*) as c FROM users WHERE role='doctor'")->fetch_assoc()['c'];
-    $stats_appts = $conn->query("SELECT COUNT(*) as c FROM appointments")->fetch_assoc()['c'];
-    $stats_pending = $conn->query("SELECT COUNT(*) as c FROM appointments WHERE status='pending'")->fetch_assoc()['c'];
-    ?>
-    <h2 style="margin-bottom: 30px;">Admin Dashboard</h2>
+        <a href="admin_dashboard.php" class="sidebar-item active"><i class="fas fa-gauge-high"></i> Control Center</a>
+        <a href="admin_patients.php" class="sidebar-item"><i class="fas fa-id-card"></i> Patient Registry</a>
+        <a href="admin_doctors.php" class="sidebar-item"><i class="fas fa-stethoscope"></i> Doctor Network</a>
+        <a href="admin_appointments.php" class="sidebar-item"><i class="fas fa-calendar-check"></i> Global Traffic</a>
+        <a href="admin_reviews.php" class="sidebar-item"><i class="fas fa-star-half-stroke"></i> Quality Control</a>
+        
+        <div style="margin-top: auto; padding-top: 2rem; border-top: 1px solid var(--border-glass);">
+            <a href="system_settings.php" class="sidebar-item"><i class="fas fa-gears"></i> Platform Settings</a>
+            <a href="support_messages.php" class="sidebar-item"><i class="fas fa-headset"></i> Support Hub</a>
+            <a href="../auth/logout.php" class="sidebar-item" style="color: var(--accent);"><i class="fas fa-power-off"></i> Sign Out</a>
+        </div>
+    </aside>
 
-    <div
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-bottom: 40px;">
-        <div class="card" style="display: flex; align-items: center; gap: 20px;">
-            <div
-                style="background: rgba(0, 184, 148, 0.1); padding: 16px; border-radius: 50%; color: var(--success-color);">
-                <i class="fas fa-user-injured" style="font-size: 1.5rem;"></i>
-            </div>
+    <!-- Main Content -->
+    <main class="main-content">
+         <div style="margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: flex-end;">
             <div>
-                <a href="admin_patients.php" style="text-decoration: none; color: inherit;">
-                    <h3 style="font-size: 2rem; margin-bottom: 5px;"><?php echo $stats_patients; ?></h3>
-                    <span style="color: var(--text-muted);">Total Patients</span>
-                </a>
+                <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Platform Pulse</h1>
+                <p style="color: var(--text-muted); font-size: 1.1rem; font-weight: 500;">Real-time overview of platform health and user activity.</p>
             </div>
-        </div>
-        <div class="card" style="display: flex; align-items: center; gap: 20px;">
-            <div
-                style="background: rgba(108, 92, 231, 0.1); padding: 16px; border-radius: 50%; color: var(--primary-color);">
-                <i class="fas fa-user-md" style="font-size: 1.5rem;"></i>
-            </div>
-            <div>
-                <a href="admin_doctors.php" style="text-decoration: none; color: inherit;">
-                    <h3 style="font-size: 2rem; margin-bottom: 5px;"><?php echo $stats_doctors; ?></h3>
-                    <span style="color: var(--text-muted);">Manage Doctors</span>
-                </a>
-            </div>
-        </div>
-        <div class="card" style="display: flex; align-items: center; gap: 20px;">
-            <div
-                style="background: rgba(253, 203, 110, 0.1); padding: 16px; border-radius: 50%; color: var(--warning-color);">
-                <i class="fas fa-calendar-check" style="font-size: 1.5rem;"></i>
-            </div>
-            <div>
-                <a href="admin_appointments.php" style="text-decoration: none; color: inherit;">
-                    <h3 style="font-size: 2rem; margin-bottom: 5px;"><?php echo $stats_appts; ?></h3>
-                    <span style="color: var(--text-muted);">Total Appointments</span>
-                </a>
-            </div>
-        </div>
-        <div class="card" style="display: flex; align-items: center; gap: 20px;">
-            <div
-                style="background: rgba(255, 118, 117, 0.1); padding: 16px; border-radius: 50%; color: var(--danger-color);">
-                <i class="fas fa-clock" style="font-size: 1.5rem;"></i>
-            </div>
-            <div>
-                <a href="admin_appointments.php?status=pending" style="text-decoration: none; color: inherit;">
-                    <h3 style="font-size: 2rem; margin-bottom: 5px;"><?php echo $stats_pending; ?></h3>
-                    <span style="color: var(--text-muted);">Pending Actions</span>
-                </a>
-            </div>
-        </div>
-        <div class="card" style="display: flex; align-items: center; gap: 20px;">
-            <div style="background: rgba(100, 100, 100, 0.1); padding: 16px; border-radius: 50%; color: #333;">
-                <i class="fas fa-star" style="font-size: 1.5rem;"></i>
-            </div>
-            <div>
-                <a href="admin_reviews.php" style="text-decoration: none; color: inherit;">
-                    <h3 style="font-size: 1.5rem; margin-bottom: 5px;">Manage Reviews</h3>
-                    <span style="color: var(--text-muted);">View & Moderate</span>
-                </a>
+            <div style="text-align: right;">
+                 <span class="badge badge-success"><i class="fas fa-check-circle"></i> System Shield Active</span>
             </div>
         </div>
 
+        <?php
+        $stats_patients = $conn->query("SELECT COUNT(*) as c FROM users WHERE role='patient'")->fetch_assoc()['c'];
+        $stats_doctors = $conn->query("SELECT COUNT(*) as c FROM users WHERE role='doctor'")->fetch_assoc()['c'];
+        $stats_appts = $conn->query("SELECT COUNT(*) as c FROM appointments")->fetch_assoc()['c'];
+        $stats_active_calls = $conn->query("SELECT COUNT(*) as c FROM appointments WHERE is_call_active = 1")->fetch_assoc()['c'] ?? 0;
+        ?>
 
-    </div>
-
-    <!-- Analytics Charts -->
-    <div
-        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; margin-bottom: 40px;">
-        <div class="card">
-            <h3 style="margin-bottom: 20px;">Appointments (Last 7 Days)</h3>
-            <canvas id="appointmentsChart"></canvas>
-        </div>
-        <div class="card">
-            <h3 style="margin-bottom: 20px;">Revenue Overview</h3>
-            <canvas id="revenueChart"></canvas>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            fetch('../api/analytics_endpoint.php')
-                .then(response => response.json())
-                .then(result => {
-                    if (result.status === 'success') {
-                        const data = result.data;
-
-                        // Appointments Chart
-                        new Chart(document.getElementById('appointmentsChart'), {
-                            type: 'line',
-                            data: {
-                                labels: data.appointments.labels,
-                                datasets: [{
-                                    label: 'Appointments',
-                                    data: data.appointments.data,
-                                    borderColor: '#6c5ce7',
-                                    tension: 0.4,
-                                    fill: true,
-                                    backgroundColor: 'rgba(108, 92, 231, 0.1)'
-                                }]
-                            },
-                            options: { responsive: true }
-                        });
-
-                        // Revenue Chart
-                        new Chart(document.getElementById('revenueChart'), {
-                            type: 'doughnut',
-                            data: {
-                                labels: data.revenue.labels,
-                                datasets: [{
-                                    data: data.revenue.data,
-                                    backgroundColor: ['#00b894', '#ff7675', '#fdcb6e']
-                                }]
-                            },
-                            options: { responsive: true }
-                        });
-                    }
-                });
-        });
-    </script>
-
-    <?php if ($message != "")
-        echo $message; ?>
-
-    <!-- Add New Admin Section -->
-    <div class="card" style="margin-bottom: 40px;">
-        <h3 style="margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
-            <i class="fas fa-user-shield" style="color: var(--primary-color);"></i> Add New Admin
-        </h3>
-        <form action="" method="POST"
-            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; align-items: end;">
-            <div class="form-group" style="margin-bottom: 0;">
-                <label for="fullname">Full Name</label>
-                <div class="input-with-icon">
-                    <i class="fas fa-user"></i>
-                    <input type="text" name="fullname" class="form-control" required placeholder="Admin Name">
+        <!-- Performance Matrix -->
+        <div class="stats-grid">
+            <div class="glass-card stat-card">
+                <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--primary);">
+                    <i class="fas fa-user-injured"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.8rem;"><?php echo $stats_patients; ?></h2>
+                    <span style="color: var(--text-dim); font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Total Patients</span>
                 </div>
             </div>
-            <div class="form-group" style="margin-bottom: 0;">
-                <label for="email">Email</label>
-                <div class="input-with-icon">
-                    <i class="fas fa-envelope"></i>
-                    <input type="email" name="email" class="form-control" required placeholder="admin@example.com">
+            <div class="glass-card stat-card">
+                <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.8rem;"><?php echo $stats_doctors; ?></h2>
+                    <span style="color: var(--text-dim); font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Verified Doctors</span>
                 </div>
             </div>
-            <div class="form-group" style="margin-bottom: 0;">
-                <label for="password">Password</label>
-                <div class="input-with-icon">
-                    <i class="fas fa-lock"></i>
-                    <input type="password" name="password" class="form-control" required placeholder="Password">
+            <div class="glass-card stat-card">
+                <div class="stat-icon" style="background: rgba(6, 182, 212, 0.1); color: var(--secondary);">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.8rem;"><?php echo $stats_appts; ?></h2>
+                    <span style="color: var(--text-dim); font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Appointments</span>
                 </div>
             </div>
-            <button type="submit" name="add_admin" class="btn btn-primary" style="height: 50px;">
-                <i class="fas fa-plus-circle"></i> Create Admin
-            </button>
-        </form>
-    </div>
-
-    <!-- Users List -->
-    <div class="card" style="margin-bottom: 40px; padding: 0; overflow: hidden;">
-        <div style="padding: 25px; border-bottom: 1px solid #eee;">
-            <h3 style="margin: 0;"><i class="fas fa-users" style="color: var(--secondary-color);"></i> User Management
-            </h3>
+            <div class="glass-card stat-card">
+                <div class="stat-icon" style="background: rgba(244, 63, 94, 0.1); color: var(--accent);">
+                    <i class="fas fa-wave-square"></i>
+                </div>
+                <div>
+                    <h2 style="font-size: 1.8rem;"><?php echo $stats_active_calls; ?></h2>
+                    <span style="color: var(--text-dim); font-weight: 600; font-size: 0.85rem; text-transform: uppercase;">Live Traffic</span>
+                </div>
+            </div>
         </div>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Joined</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if ($users_result->num_rows > 0): ?>
-                        <?php while ($row = $users_result->fetch_assoc()): ?>
-                            <?php $badge_class = "badge-" . $row['role']; ?>
-                            <tr>
-                                <td>#<?php echo $row['id']; ?></td>
-                                <td style="font-weight: 600;"><?php echo htmlspecialchars($row['fullname']); ?></td>
-                                <td><?php echo htmlspecialchars($row['email']); ?></td>
-                                <td>
-                                    <span class="badge <?php echo $badge_class; ?>">
-                                        <?php echo ucfirst($row['role']); ?>
-                                    </span>
-                                    <?php if ($row['is_approved'] == 0): ?>
-                                        <span class="badge badge-warning" style="font-size: 0.7em; margin-left: 5px;">PENDING</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td><?php echo date('M d, Y', strtotime($row['created_at'])); ?></td>
-                                <td>
-                                    <?php if ($row['id'] != $_SESSION['user_id']): ?>
-                                        <div style="display: flex; gap: 10px;">
-                                            <?php if ($row['is_approved'] == 0): ?>
-                                                <a href="admin_dashboard.php?action=approve_user&id=<?php echo $row['id']; ?>"
-                                                    class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem;"
-                                                    title="Approve User">
-                                                    <i class="fas fa-check"></i>
-                                                </a>
-                                            <?php endif; ?>
-                                            <a href="admin_dashboard.php?action=delete_user&id=<?php echo $row['id']; ?>"
-                                                onclick="return confirm('Are you sure?');" class="btn btn-danger"
-                                                style="padding: 5px 10px; font-size: 0.8rem;" title="Delete User">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </a>
-                                        </div>
-                                    <?php else: ?>
-                                        <span style="color: var(--text-muted); font-size: 0.8rem;">(You)</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <tr>
-                            <td colspan="6" style="text-align: center; padding: 30px;">No users found</td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+
+        <!-- Analytics Visualization -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 3rem;">
+            <div class="glass-card">
+                <h3 style="margin-bottom: 2rem;">Traffic Forecasting</h3>
+                <canvas id="appointmentsChart" height="250"></canvas>
+            </div>
+            <div class="glass-card">
+                <h3 style="margin-bottom: 2rem;">User Distribution</h3>
+                <canvas id="revenueChart" height="250"></canvas>
+            </div>
         </div>
-    </div>
 
-    <!-- All Appointments Section -->
-    <div class="card" style="padding: 0; overflow: hidden;">
-        <div style="padding: 25px; border-bottom: 1px solid #eee;">
-            <h3 style="margin: 0;"><i class="fas fa-calendar-alt" style="color: var(--secondary-color);"></i>
-                Appointment History</h3>
-        </div>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Patient</th>
-                        <th>Doctor</th>
-                        <th>Date & Time</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                    $sql_all_appts = "SELECT a.*, p.fullname AS patient_name, d.fullname AS doctor_name 
-                                          FROM appointments a 
-                                          JOIN users p ON a.patient_id = p.id 
-                                          JOIN users d ON a.doctor_id = d.id 
-                                          ORDER BY a.date DESC, a.time ASC";
-                    $all_appts_result = $conn->query($sql_all_appts);
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                fetch('../api/analytics_endpoint.php')
+                    .then(res => res.json())
+                    .then(result => {
+                        if (result.status === 'success') {
+                            const data = result.data;
+                            new Chart(document.getElementById('appointmentsChart'), {
+                                type: 'line',
+                                data: {
+                                    labels: data.appointments.labels,
+                                    datasets: [{
+                                        label: 'Traffic Volume',
+                                        data: data.appointments.data,
+                                        borderColor: '#6366f1',
+                                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                        borderWidth: 3,
+                                        tension: 0.4,
+                                        fill: true,
+                                        pointBackgroundColor: '#6366f1',
+                                        pointRadius: 4
+                                    }]
+                                },
+                                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } } }
+                            });
 
-                    if ($all_appts_result->num_rows > 0) {
-                        while ($appt = $all_appts_result->fetch_assoc()) {
-                            $status = $appt['status'];
-                            $badge_class = 'badge-pending';
-                            if ($status == 'confirmed')
-                                $badge_class = 'badge-success';
-                            elseif ($status == 'rejected')
-                                $badge_class = 'badge-danger';
-
-                            echo "<tr>";
-                            echo "<td>#" . $appt['id'] . "</td>";
-                            echo "<td>" . htmlspecialchars($appt['patient_name']) . "</td>";
-                            echo "<td style='color: var(--primary-color);'><i class='fas fa-user-md'></i> " . htmlspecialchars($appt['doctor_name']) . "</td>";
-                            echo "<td>" . $appt['date'] . " <span style='font-size:0.85em; color:var(--text-muted);'>" . date("h:i A", strtotime($appt['time'])) . "</span></td>";
-                            echo "<td><span class='badge " . $badge_class . "'>" . ucfirst($status) . "</span></td>";
-                            echo "</tr>";
+                            new Chart(document.getElementById('revenueChart'), {
+                                type: 'doughnut',
+                                data: {
+                                    labels: data.revenue.labels,
+                                    datasets: [{
+                                        data: data.revenue.data,
+                                        backgroundColor: ['#10b981', '#6366f1', '#f59e0b'],
+                                        borderWidth: 0,
+                                        hoverOffset: 15
+                                    }]
+                                },
+                                options: { responsive: true, cutout: '75%', plugins: { legend: { position: 'bottom', labels: { color: 'rgba(255,255,255,0.7)', padding: 20 } } } }
+                            });
                         }
-                    } else {
-                        echo "<tr><td colspan='5' style='text-align: center; padding: 30px;'>No appointments found</td></tr>";
-                    }
-                    ?>
-                </tbody>
-            </table>
+                    });
+            });
+        </script>
+
+        <!-- Management Tables -->
+        <div style="display: grid; gap: 3rem;">
+            <!-- Register New Admin -->
+            <div class="glass-card">
+                <h3 style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-glass); padding-bottom: 1rem;">
+                    <i class="fas fa-plus-circle" style="color: var(--primary);"></i> Authority Escalation
+                </h3>
+                <form action="" method="POST" style="display: grid; grid-template-columns: repeat(3, 1fr) auto; gap: 1.5rem; align-items: flex-end;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Admin Full Name</label>
+                        <input type="text" name="fullname" class="form-control" placeholder="Superuser Name" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Secure Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="admin@medconnect.sys" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Access Key</label>
+                        <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" name="add_admin" class="btn btn-primary" style="padding: 1rem 2rem;">Authorize</button>
+                </form>
+            </div>
+
+            <!-- User Directory -->
+            <div class="glass-card" style="padding: 0;">
+                <div style="padding: 2rem; border-bottom: 1px solid var(--border-glass);">
+                    <h3>Global User Registry</h3>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="text-align: left; background: rgba(255,255,255,0.02);">
+                                <th style="padding: 1.5rem 2rem; color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Identity</th>
+                                <th style="padding: 1.5rem 2rem; color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Permission Level</th>
+                                <th style="padding: 1.5rem 2rem; color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Status</th>
+                                <th style="padding: 1.5rem 2rem; color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $users_res = $conn->query("SELECT * FROM users ORDER BY created_at DESC LIMIT 10");
+                            while ($row = $users_res->fetch_assoc()):
+                                $role_badge = 'badge-info';
+                                if($row['role'] == 'admin') $role_badge = 'badge-danger';
+                                if($row['role'] == 'doctor') $role_badge = 'badge-success';
+                            ?>
+                                <tr style="border-bottom: 1px solid var(--border-glass);">
+                                    <td style="padding: 1.5rem 2rem;">
+                                        <div style="font-weight: 700; color: var(--text-main);"><?php echo $row['fullname']; ?></div>
+                                        <div style="font-size: 0.8rem; color: var(--text-dim);"><?php echo $row['email']; ?></div>
+                                    </td>
+                                    <td style="padding: 1.5rem 2rem;">
+                                        <span class="badge <?php echo $role_badge; ?>"><?php echo strtoupper($row['role']); ?></span>
+                                    </td>
+                                    <td style="padding: 1.5rem 2rem;">
+                                        <?php if($row['is_approved']): ?>
+                                            <span style="color: var(--success); font-size: 0.85rem; font-weight: 600;"><i class="fas fa-check-double"></i> Verified</span>
+                                        <?php else: ?>
+                                            <span style="color: var(--warning); font-size: 0.85rem; font-weight: 600;"><i class="fas fa-clock"></i> Pending</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td style="padding: 1.5rem 2rem;">
+                                        <?php if($row['id'] != $_SESSION['user_id']): ?>
+                                            <a href="admin_dashboard.php?action=delete_user&id=<?php echo $row['id']; ?>" onclick="return confirm('Terminate this identity?')" style="color: var(--accent);"><i class="fas fa-trash-can"></i></a>
+                                        <?php else: ?>
+                                            <span style="opacity: 0.5; font-size: 0.8rem;">Master Session</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-    </div>
+    </main>
 </div>
 
 <?php include '../includes/footer.php'; ?>

@@ -1,6 +1,8 @@
 <?php
 include '../includes/db.php';
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $message = "";
 
@@ -9,44 +11,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $conn->real_escape_string($_POST['email']);
     $password = $_POST['password'];
     $confirm_password = $_POST['confirm_password'];
-    $role = 'patient'; // Force role to patient
+    $role = 'patient'; 
 
-    if (false) { // Deprecated role check
-        $message = "Invalid role";
-    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-envelope-open-text'></i> Invalid email format</div>";
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $message = "<div class='badge badge-danger' style='width: 100%; padding: 1rem; margin-bottom: 20px;'><i class='fas fa-envelope'></i> Invalid email format</div>";
     } elseif (strlen($password) < 6) {
-        $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-key'></i> Password must be at least 6 characters</div>";
+        $message = "<div class='badge badge-danger' style='width: 100%; padding: 1rem; margin-bottom: 20px;'><i class='fas fa-key'></i> Password must be at least 6 characters.</div>";
+    } elseif (!preg_match('@[A-Z]@', $password)) {
+        $message = "<div class='badge badge-danger' style='width: 100%; padding: 1rem; margin-bottom: 20px;'><i class='fas fa-font'></i> Password must include at least one capital letter.</div>";
+    } elseif (!preg_match('@[0-9]@', $password)) {
+        $message = "<div class='badge badge-danger' style='width: 100%; padding: 1rem; margin-bottom: 20px;'><i class='fas fa-hashtag'></i> Password must include at least one number.</div>";
+    } elseif (!preg_match('@[^\w]@', $password)) {
+        $message = "<div class='badge badge-danger' style='width: 100%; padding: 1rem; margin-bottom: 20px;'><i class='fas fa-atom'></i> Password must include at least one special character.</div>";
     } elseif ($password !== $confirm_password) {
-        $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-exclamation-triangle'></i> Passwords do not match</div>";
-    } elseif ($password === 'ad@1308') {
-        $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-shield-alt'></i> Prohibited password selection</div>";
+        $message = "<div class='badge badge-danger' style='width: 100%; padding: 1rem; margin-bottom: 20px;'><i class='fas fa-exclamation-triangle'></i> Passwords do not match</div>";
     } else {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
         $checkEmail = "SELECT id FROM users WHERE email = '$email'";
         $result = $conn->query($checkEmail);
 
         if ($result->num_rows > 0) {
-            $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-user-check'></i> Email already registered!</div>";
+            $message = "<div class='badge badge-warning' style='width: 100%; padding: 1rem; margin-bottom: 20px;'><i class='fas fa-user-check'></i> Email already exists</div>";
         } else {
-            $is_approved = ($role === 'patient') ? 1 : 0;
-            // Verification code is no longer needed but column might expect it or it's nullable. 
-            // Setting it to NULL or 0 is fine if column allows nullable, or just a dummy value if strict.
-            // Let's check schema/previous usage. Previous usage had it. 
-            // We'll just leave it as 0 or empty since we verify immediately.
-
-            // Insert user with email_verified = 1 (Auto Verified)
+            $is_approved = 1;
             $sql = "INSERT INTO users (fullname, email, password, role, is_approved, verification_code, email_verified) 
                     VALUES ('$fullname', '$email', '$hashed_password', '$role', $is_approved, '0', 1)";
 
             if ($conn->query($sql) === TRUE) {
-                // Registration successful - No email verification needed
-                // Optional: Auto-login code could go here, but redirect to login is requested standard.
-
-                header("Location: login.php?msg=registered");
+                header("Location: " . BASE_URL . "auth/login.php?success=1");
                 exit();
             } else {
-                $message = "<div class='alert-error'>Error: " . $conn->error . "</div>";
+                $message = "<div class='badge badge-danger'>Error: " . $conn->error . "</div>";
             }
         }
     }
@@ -57,127 +52,105 @@ $hide_header = true;
 include '../includes/header.php';
 ?>
 
-<div class="auth-split-container">
-    <!-- Visual Side -->
-    <div class="auth-visual-side">
-        <img src="https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=1200"
-            alt="Medical Workspace" class="bg-img">
-        <div class="auth-visual-content animate-up">
-            <div style="font-size: 3.5rem; margin-bottom: 1.5rem;"><i class="fas fa-user-md"></i></div>
-            <h1 style="color: white; font-size: 3rem; margin-bottom: 1.5rem; line-height: 1.2;">Be Part of the <br>
-                <span>Healthcare</span> Future.
+<div style="display: flex; min-height: 100vh; background: var(--bg-dark);">
+    <div style="flex: 1.2; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 4rem; background: radial-gradient(circle at 70% 70%, rgba(6, 182, 212, 0.2) 0%, transparent 60%);">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;">
+            <div style="position: absolute; top: 15%; right: 10%; width: 450px; height: 450px; background: var(--secondary); filter: blur(150px); opacity: 0.1;"></div>
+            <div style="position: absolute; bottom: 15%; left: 10%; width: 350px; height: 350px; background: var(--primary); filter: blur(150px); opacity: 0.1;"></div>
+        </div>
+
+        <div style="position: relative; z-index: 2; width: 100%; max-width: 600px;" class="fade-in">
+            <div class="logo" style="font-size: 2.2rem; margin-bottom: 3rem;">
+                <i class="fas fa-heart-pulse"></i> <span>MedConnect</span>
+            </div>
+            
+            <h1 style="font-size: 4rem; line-height: 1.1; margin-bottom: 2rem;">
+                Join the <br>
+                <span style="color: var(--primary);">Health Revolution.</span>
             </h1>
-            <p style="font-size: 1.2rem; opacity: 0.9;">Sign up today to access professional medical consultants or join
-                our growing network of certified doctors.</p>
+            
+            <p style="font-size: 1.3rem; color: var(--text-muted); margin-bottom: 4rem; line-height: 1.7;">
+                Create your secure health profile today and unlock instant access to top-tier medical specialists worldwide.
+            </p>
+
+            <div style="display: grid; gap: 2.5rem;">
+                <div style="display: flex; gap: 1.5rem; align-items: flex-start;">
+                    <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success); width: 50px; height: 50px; flex-shrink: 0;">
+                        <i class="fas fa-hospital-user" style="font-size: 1rem;"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Seamless Onboarding</h4>
+                        <p style="color: var(--text-dim); font-size: 0.9rem;">Set up your profile and book your first call in under 2 minutes.</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1.5rem; align-items: flex-start;">
+                    <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning); width: 50px; height: 50px; flex-shrink: 0;">
+                        <i class="fas fa-cloud-medical" style="font-size: 1rem;"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 1.1rem; margin-bottom: 0.5rem;">Digital Health Vault</h4>
+                        <p style="color: var(--text-dim); font-size: 0.9rem;">Manage all your prescriptions and reports in one secure location.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Form Side -->
-    <div class="auth-content-side">
-        <div class="card animate-up"
-            style="width: 100%; max-width: 550px; padding: 3rem; border: none; box-shadow: none; background: transparent;">
-            <div style="margin-bottom: 2.5rem;">
-                <h2 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Create Account</h2>
-                <p style="color: var(--text-muted);">Fill in the details to create your secure medicine portal</p>
+    <div style="flex: 1; min-width: 500px; display: flex; align-items: center; justify-content: center; padding: 3rem; background: rgba(15, 23, 42, 0.3);">
+        <div class="glass-card" style="width: 100%; max-width: 520px; padding: 3.5rem;">
+            <div style="margin-bottom: 3rem;">
+                <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">Create Account</h2>
+                <p style="color: var(--text-muted); font-weight: 500;">Start your journey to better health.</p>
             </div>
 
-            <?php if ($message != ""):
-                echo $message;
-            endif; ?>
+            <?php if ($message != "") echo $message; ?>
 
-            <form action="" method="POST" style="display: grid; gap: 1.5rem;">
+            <form action="" method="POST" style="display: grid; gap: 1.8rem;">
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label
-                        style="color: var(--text-main); font-weight: 600; display: block; margin-bottom: 0.75rem;">Full
-                        Name</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-user"
-                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 5;"></i>
-                        <input type="text" name="fullname" class="form-control" placeholder="John Doe" required
-                            style="padding-left: 3.5rem;" autocomplete="name">
+                    <label class="form-label">Full Name</label>
+                    <div style="position: relative;">
+                        <i class="fas fa-user-tag" style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-dim);"></i>
+                        <input type="text" name="fullname" class="form-control" placeholder="John Doe" required style="padding-left: 3.5rem;">
                     </div>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 0;">
-                    <label
-                        style="color: var(--text-main); font-weight: 600; display: block; margin-bottom: 0.75rem;">Email
-                        Address</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-envelope"
-                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 5;"></i>
-                        <input type="email" name="email" id="email" class="form-control" placeholder="email@example.com"
-                            required style="padding-left: 3.5rem;" autocomplete="username">
+                    <label class="form-label">Email Address</label>
+                    <div style="position: relative;">
+                        <i class="fas fa-envelope" style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-dim);"></i>
+                        <input type="email" name="email" class="form-control" placeholder="john@example.com" required style="padding-left: 3.5rem;">
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label
-                        style="color: var(--text-main); font-weight: 600; display: block; margin-bottom: 0.75rem;">Create
-                        Password</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock"
-                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 5;"></i>
-                        <input type="password" name="password" id="password" class="form-control" placeholder="••••••••"
-                            required style="padding-left: 3.5rem;" autocomplete="new-password">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Password</label>
+                        <div style="position: relative;">
+                            <i class="fas fa-lock" style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-dim);"></i>
+                            <input type="password" name="password" class="form-control" placeholder="••••••" required style="padding-left: 3.5rem;">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Confirm</label>
+                        <div style="position: relative;">
+                            <i class="fas fa-shield-check" style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-dim);"></i>
+                            <input type="password" name="confirm_password" class="form-control" placeholder="••••••" required style="padding-left: 3.5rem;">
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-group" style="margin-bottom: 0;">
-                    <label
-                        style="color: var(--text-main); font-weight: 600; display: block; margin-bottom: 0.75rem;">Confirm
-                        Password</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock"
-                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 5;"></i>
-                        <input type="password" name="confirm_password" id="confirm_password" class="form-control"
-                            placeholder="••••••••" required style="padding-left: 3.5rem;" autocomplete="new-password">
-                    </div>
-                </div>
-
-                <!-- Doctor registration removed as per policy -->
                 <input type="hidden" name="role" value="patient">
 
-                <button type="submit" class="btn btn-primary"
-                    style="width: 100%; padding: 1rem; font-size: 1.1rem; margin-top: 1rem;">
-                    Sign Up <i class="fas fa-check-circle" style="margin-left: 8px;"></i>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1.2rem; margin-top: 1rem; font-size: 1.1rem;">
+                    Create Free Account <i class="fas fa-arrow-right" style="margin-left: 10px;"></i>
                 </button>
             </form>
 
-            <p style="text-align: center; margin-top: 2.5rem; color: var(--text-muted); font-weight: 500;">
-                Already have an account? <a href="login.php" style="color: var(--primary); font-weight: 700;">Sign in
-                    here</a>
+            <p style="text-align: center; margin-top: 3rem; color: var(--text-muted); font-weight: 500;">
+                Already have an account? <a href="login.php" style="color: var(--primary); font-weight: 700;">Sign In</a>
             </p>
         </div>
     </div>
 </div>
-
-<script>
-    function updateRoleUI(radio) {
-        const patientDiv = document.getElementById('role-patient');
-        const doctorDiv = document.getElementById('role-doctor');
-        const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim();
-        const primarySoft = getComputedStyle(document.documentElement).getPropertyValue('--primary-soft').trim();
-        const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim();
-        const textMuted = getComputedStyle(document.documentElement).getPropertyValue('--text-muted').trim();
-
-        if (radio.value === 'patient') {
-            patientDiv.style.borderColor = primaryColor;
-            patientDiv.style.background = primarySoft;
-            patientDiv.style.color = primaryColor;
-
-            doctorDiv.style.borderColor = borderColor;
-            doctorDiv.style.background = 'transparent';
-            doctorDiv.style.color = textMuted;
-        } else {
-            doctorDiv.style.borderColor = primaryColor;
-            doctorDiv.style.background = primarySoft;
-            doctorDiv.style.color = primaryColor;
-
-            patientDiv.style.borderColor = borderColor;
-            patientDiv.style.background = 'transparent';
-            patientDiv.style.color = textMuted;
-        }
-    }
-</script>
 
 <?php include '../includes/footer.php'; ?>

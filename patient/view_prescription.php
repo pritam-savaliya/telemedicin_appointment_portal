@@ -8,6 +8,11 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $appointment_id = isset($_GET['appointment_id']) ? intval($_GET['appointment_id']) : 0;
+if ($appointment_id <= 0) {
+    header("Location: my_prescriptions.php");
+    exit();
+}
+
 $sql = "SELECT p.*, u.fullname as doctor_name, u.email as doctor_email, pat.fullname as patient_name, pat.email as patient_email, a.date
         FROM prescriptions p
         JOIN users u ON p.doctor_id = u.id
@@ -17,15 +22,37 @@ $sql = "SELECT p.*, u.fullname as doctor_name, u.email as doctor_email, pat.full
 
 $result = $conn->query($sql);
 if ($result->num_rows == 0) {
-    die("Prescription not found.");
+    include '../includes/header.php'; 
+    echo '<div class="container section" style="text-align: center; padding: 100px 0;">
+            <div class="glass-card" style="max-width: 600px; margin: 0 auto; padding: 4rem;">
+                <i class="fas fa-prescription-bottle-medical" style="font-size: 4rem; color: var(--warning); margin-bottom: 2rem; opacity: 0.5;"></i>
+                <h2 style="margin-bottom: 1rem;">Prescription Not Found</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">It seems a prescription hasn\'t been issued for this appointment yet. Please contact your doctor.</p>
+                <a href="my_appointments.php" class="btn btn-primary">Back to History</a>
+            </div>
+          </div>';
+    include '../includes/footer.php';
+    exit();
 }
+
 
 $pres = $result->fetch_assoc();
 
 // Security: Check if user is the patient or the doctor
 if ($_SESSION['role'] == 'patient' && $pres['patient_id'] != $_SESSION['user_id']) {
-    die("Access Denied");
+    include '../includes/header.php'; 
+    echo '<div class="container section" style="text-align: center; padding: 100px 0;">
+            <div class="glass-card" style="max-width: 600px; margin: 0 auto; padding: 4rem;">
+                <i class="fas fa-user-shield" style="font-size: 4rem; color: var(--accent); margin-bottom: 2rem; opacity: 0.5;"></i>
+                <h2 style="margin-bottom: 1rem;">Access Denied</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">You do not have permission to view this prescription.</p>
+                <a href="my_appointments.php" class="btn btn-primary">Back to History</a>
+            </div>
+          </div>';
+    include '../includes/footer.php';
+    exit();
 }
+
 ?>
 
 <!DOCTYPE html>

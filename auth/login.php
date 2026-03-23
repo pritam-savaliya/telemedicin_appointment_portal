@@ -7,19 +7,19 @@ if (session_status() === PHP_SESSION_NONE) {
 $message = "";
 if (isset($_GET['success'])) {
     if ($_GET['success'] == 1) {
-        $message = "<div class='alert-success' style='padding: 1rem; border-radius: 12px; background: rgba(16, 185, 129, 0.1); color: #10b981; margin-bottom: 20px; border: 1px solid rgba(16, 185, 129, 0.2);'><i class='fas fa-check-circle'></i> Registration successful! Please login.</div>";
+        $message = "<div class='badge badge-success' style='width: 100%; padding: 1rem; margin-bottom: 20px;'><i class='fas fa-check-circle'></i> Registration successful! Please login.</div>";
     } elseif ($_GET['success'] == 2) {
-        $message = "<div class='alert-success' style='padding: 1rem; border-radius: 12px; background: rgba(16, 185, 129, 0.1); color: #10b981; margin-bottom: 20px; border: 1px solid rgba(16, 185, 129, 0.2);'><i class='fas fa-check-circle'></i> Registration successful! Waiting for admin approval.</div>";
+        $message = "<div class='badge badge-success' style='width: 100%; padding: 1rem; margin-bottom: 20px;'><i class='fas fa-check-circle'></i> Registration successful! Waiting for admin approval.</div>";
     }
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $conn->real_escape_string($_POST['email']);
     $password = $_POST['password'];
-    $captcha = strtoupper($_POST['captcha']);
+    $captcha = strtoupper($_POST['captcha'] ?? '');
 
     if (!isset($_SESSION['captcha_code']) || $captcha !== $_SESSION['captcha_code']) {
-        $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-exclamation-circle'></i> Invalid Captcha Code</div>";
+        $message = "<div class='badge badge-danger' style='width: 100%; padding: 1rem; margin-bottom: 20px;'><i class='fas fa-exclamation-circle'></i> Invalid Captcha Code</div>";
     } else {
         $sql = "SELECT id, fullname, role, password, is_approved, profile_pic, email_verified, email, verification_code FROM users WHERE email = '$email'";
         $result = $conn->query($sql);
@@ -27,27 +27,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($result->num_rows == 1) {
             $row = $result->fetch_assoc();
             if (password_verify($password, $row['password'])) {
-                if ($row['email_verified'] == 0) {
-                    $_SESSION['verification_email'] = $row['email'];
-
-                    // Resend Code Logic could go here or on the verify page, 
-                    // for now just redirect to enter the code they (hopefully) received.
-                    // If they lost it, we might need a "Resend" button on verify_email.php.
-                    // We'll trust the existing code for now.
-                    if (empty($row['verification_code'])) {
-                        // If no code exists for some reason, generate one
-                        $new_code = rand(100000, 999999);
-                        $conn->query("UPDATE users SET verification_code = '$new_code' WHERE id = " . $row['id']);
-                        // Ideally send email here too
-                    }
-
-                    header("Location: verify_email.php");
-                    exit();
-                } else if ($row['is_approved'] == 0) {
-                    $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-clock'></i> Your account is pending admin approval.</div>";
+                if ($row['is_approved'] == 0) {
+                    $message = "<div class='badge badge-warning' style='width: 100%; padding: 1rem; margin-bottom: 20px;'><i class='fas fa-clock'></i> Account pending admin approval.</div>";
                 } else {
                     $_SESSION['user_id'] = $row['id'];
                     $_SESSION['fullname'] = $row['fullname'];
+                    $_SESSION['email'] = $row['email'];
                     $_SESSION['role'] = $row['role'];
                     $_SESSION['profile_pic'] = $row['profile_pic'];
 
@@ -61,10 +46,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     exit();
                 }
             } else {
-                $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-lock'></i> Invalid password.</div>";
+                $message = "<div class='badge badge-danger' style='width: 100%; padding: 1rem; margin-bottom: 20px;'><i class='fas fa-lock'></i> Invalid password.</div>";
             }
         } else {
-            $message = "<div class='alert-error' style='padding: 1rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); color: #f43f5e; margin-bottom: 20px; border: 1px solid rgba(244, 63, 94, 0.2);'><i class='fas fa-user-times'></i> No account found with that email.</div>";
+            $message = "<div class='badge badge-danger' style='width: 100%; padding: 1rem; margin-bottom: 20px;'><i class='fas fa-user-times'></i> No account found with that email.</div>";
         }
     }
 }
@@ -74,112 +59,122 @@ $hide_header = true;
 include '../includes/header.php';
 ?>
 
-<div class="auth-split-container">
-    <!-- Visual Side -->
-    <div class="auth-visual-side">
-        <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=1200"
-            alt="Healthcare" class="bg-img">
-        <div class="auth-visual-content animate-up">
-            <div style="font-size: 3.5rem; margin-bottom: 1.5rem;"><i class="fas fa-heartbeat"></i></div>
-            <h1 style="color: white; font-size: 3rem; margin-bottom: 1.5rem; line-height: 1.2;">Elevating Healthcare
-                <br> Through <span>Intelligence</span>.
+<div style="display: flex; min-height: 100vh; background: var(--bg-dark);">
+    <!-- Left Side: Visual/Branding -->
+    <div style="flex: 1.2; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 4rem; background: radial-gradient(circle at 30% 30%, rgba(99, 102, 241, 0.2) 0%, transparent 60%);">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;">
+            <div style="position: absolute; top: 10%; left: 10%; width: 400px; height: 400px; background: var(--primary); filter: blur(150px); opacity: 0.1;"></div>
+            <div style="position: absolute; bottom: 10%; right: 10%; width: 300px; height: 300px; background: var(--secondary); filter: blur(150px); opacity: 0.1;"></div>
+        </div>
+
+        <div style="position: relative; z-index: 2; width: 100%; max-width: 600px;" class="fade-in">
+            <div class="logo" style="font-size: 2.2rem; margin-bottom: 3rem;">
+                <i class="fas fa-heart-pulse"></i> <span>MedConnect</span>
+            </div>
+            
+            <h1 style="font-size: 4rem; line-height: 1.1; margin-bottom: 2rem;">
+                Your Health Journey <br>
+                <span style="color: var(--secondary);">Simplified.</span>
             </h1>
-            <p style="font-size: 1.2rem; opacity: 0.9;">Join thousands of patients and healthcare providers redefining
-                meeting medical needs via our smart telemedicine platform.</p>
+            
+            <p style="font-size: 1.3rem; color: var(--text-muted); margin-bottom: 4rem; line-height: 1.7;">
+                Access world-class medical specialists, secure digital records, and instant consultations in one unified platform.
+            </p>
+
+            <div style="display: grid; gap: 2rem;">
+                <div style="display: flex; gap: 1.5rem; align-items: center;">
+                    <div class="stat-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--primary); width: 50px; height: 50px;">
+                        <i class="fas fa-check" style="font-size: 1rem;"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 1.1rem;">Verified Specialists</h4>
+                        <p style="color: var(--text-dim); font-size: 0.9rem;">Rigorous vetting for every doctor on board.</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1.5rem; align-items: center;">
+                    <div class="stat-icon" style="background: rgba(6, 182, 212, 0.1); color: var(--secondary); width: 50px; height: 50px;">
+                        <i class="fas fa-lock" style="font-size: 1rem;"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 1.1rem;">End-to-End Privacy</h4>
+                        <p style="color: var(--text-dim); font-size: 0.9rem;">Your medical data is encrypted and secure.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Form Side -->
-    <div class="auth-content-side">
-        <div class="card animate-up"
-            style="width: 100%; max-width: 480px; padding: 3rem; border: none; box-shadow: none; background: transparent;">
-            <div style="margin-bottom: 2.5rem;">
-                <h2 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Sign In</h2>
-                <p style="color: var(--text-muted);">Enter your credentials to access your account</p>
+    <!-- Right Side: Form Area -->
+    <div style="flex: 1; min-width: 450px; display: flex; align-items: center; justify-content: center; padding: 3rem; background: rgba(15, 23, 42, 0.3);">
+        <div class="glass-card" style="width: 100%; max-width: 480px; padding: 3.5rem;">
+            <div style="margin-bottom: 3rem;">
+                <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">Welcome Back</h2>
+                <p style="color: var(--text-muted); font-weight: 500;">Please enter your details to sign in.</p>
             </div>
 
-            <?php if ($message != ""):
-                echo $message;
-            endif; ?>
+            <?php if ($message != "") echo $message; ?>
 
             <form action="" method="POST">
                 <div class="form-group">
-                    <label style="color: var(--text-main); font-weight: 600;">Email Address</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-envelope"
-                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 5;"></i>
-                        <input type="email" name="email" id="email" class="form-control" placeholder="name@company.com"
-                            required style="padding-left: 3.5rem;" autocomplete="username">
+                    <label class="form-label">Email Address</label>
+                    <div style="position: relative;">
+                        <i class="fas fa-envelope" style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-dim);"></i>
+                        <input type="email" name="email" class="form-control" placeholder="doctor@medconnect.com" required style="padding-left: 3.5rem;">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                        <label style="color: var(--text-main); font-weight: 600; margin-bottom: 0;">Password</label>
-                        <a href="forgot_password.php"
-                            style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">Forgot Password?</a>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                        <label class="form-label" style="margin-bottom: 0;">Password</label>
+                        <a href="forgot_password.php" style="font-size: 0.85rem; color: var(--primary); font-weight: 700;">Forgot?</a>
                     </div>
-                    <div class="input-with-icon" style="position: relative;">
-                        <i class="fas fa-key"
-                            style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); z-index: 5;"></i>
-                        <input type="password" name="password" id="password" class="form-control" placeholder="••••••••"
-                            required style="padding-left: 3.5rem; padding-right: 3.5rem;"
-                            autocomplete="current-password">
-                        <i class="fas fa-eye" id="togglePassword" title="Show Password"
-                            style="position: absolute; right: 1.25rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-muted); z-index: 10;"></i>
+                    <div style="position: relative;">
+                        <i class="fas fa-lock" style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-dim);"></i>
+                        <input type="password" name="password" id="password" class="form-control" placeholder="••••••••" required style="padding-left: 3.5rem; padding-right: 3.5rem;">
+                        <i class="fas fa-eye" id="togglePassword" style="position: absolute; right: 1.25rem; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--text-dim);"></i>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label style="color: var(--text-main); font-weight: 600;">Security Check</label>
-                    <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center;">
-                        <input type="text" name="captcha" class="form-control" placeholder="Code" required
-                            style="letter-spacing: 4px; font-weight: 700; text-align: center; text-transform: uppercase;"
-                            oninput="this.value = this.value.toUpperCase()">
-
+                    <label class="form-label">Security Verification</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" name="captcha" class="form-control" placeholder="Code" required style="letter-spacing: 4px; font-weight: 800; text-align: center; text-transform: uppercase; width: 120px;">
+                        
                         <?php
                         $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
                         $captcha_code = '';
-                        for ($i = 0; $i < 5; $i++) {
-                            $captcha_code .= $chars[rand(0, strlen($chars) - 1)];
-                        }
+                        for ($i = 0; $i < 5; $i++) { $captcha_code .= $chars[rand(0, strlen($chars) - 1)]; }
                         $_SESSION['captcha_code'] = $captcha_code;
                         ?>
 
-                        <div id="captcha_container"
-                            style="background: var(--bg-card); padding: 0.8rem 1.2rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-family: monospace; font-weight: 800; font-size: 1.2rem; letter-spacing: 3px; color: var(--primary); user-select: none; text-decoration: line-through;">
+                        <div id="captcha_container" style="flex: 1; background: var(--bg-glass); border: 1px solid var(--border-glass); padding: 0.8rem; border-radius: var(--radius-md); text-align: center; font-family: monospace; font-weight: 800; color: var(--secondary); letter-spacing: 3px; font-size: 1.1rem; text-decoration: line-through;">
                             <?php echo $captcha_code; ?>
                         </div>
-
-                        <button type="button" id="refresh_captcha" class="theme-toggle-btn"
-                            style="width: 45px; height: 45px;" title="Refresh Captcha">
+                        
+                        <button type="button" id="refresh_captcha" class="btn btn-secondary" style="padding: 1rem; border-radius: var(--radius-md);">
                             <i class="fas fa-sync-alt"></i>
                         </button>
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary"
-                    style="width: 100%; padding: 1rem; font-size: 1.1rem; margin-top: 1rem;">
-                    Sign In <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1.2rem; margin-top: 1rem; font-size: 1.1rem;">
+                    Sign In <i class="fas fa-arrow-right" style="margin-left: 10px;"></i>
                 </button>
-
-                <div style="text-align: center; margin: 2rem 0; position: relative;">
-                    <hr style="border: 0; border-top: 1px solid var(--border-color);">
-                    <span
-                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-body); padding: 0 15px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">OR</span>
-                </div>
-
-                <a href="google_login.php" class="btn btn-secondary" style="width: 100%; gap: 12px;">
-                    <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" alt="Google"
-                        style="width: 20px;">
-                    Google Account
-                </a>
             </form>
 
-            <p style="text-align: center; margin-top: 2.5rem; color: var(--text-muted); font-weight: 500;">
-                New to TeleMed? <a href="register.php" style="color: var(--primary); font-weight: 700;">Create
-                    account</a>
+            <div style="margin: 2.5rem 0; display: flex; align-items: center; gap: 1.5rem;">
+                <div style="flex: 1; height: 1px; background: var(--border-glass);"></div>
+                <span style="font-size: 0.8rem; color: var(--text-dim); font-weight: 600; text-transform: uppercase;">or continue with</span>
+                <div style="flex: 1; height: 1px; background: var(--border-glass);"></div>
+            </div>
+
+            <a href="google_login.php" class="btn btn-secondary" style="width: 100%; border-radius: var(--radius-md);">
+                <img src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" style="width: 18px; margin-right: 12px;"> 
+                Sign in with Google
+            </a>
+
+            <p style="text-align: center; margin-top: 3rem; color: var(--text-muted); font-weight: 500;">
+                New to MedConnect? <a href="register.php" style="color: var(--primary); font-weight: 700;">Create Account</a>
             </p>
         </div>
     </div>
@@ -189,29 +184,20 @@ include '../includes/header.php';
     document.getElementById('refresh_captcha').addEventListener('click', function () {
         const icon = this.querySelector('i');
         icon.classList.add('fa-spin');
-        const xhr = new XMLHttpRequest();
-        xhr.open('GET', '../api/ajax_refresh_captcha.php', true);
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                document.getElementById('captcha_container').innerText = xhr.responseText;
+        fetch('../api/ajax_refresh_captcha.php')
+            .then(res => res.text())
+            .then(code => {
+                document.getElementById('captcha_container').innerText = code;
                 setTimeout(() => icon.classList.remove('fa-spin'), 600);
-            }
-        };
-        xhr.send();
+            });
     });
 
     const togglePassword = document.querySelector('#togglePassword');
     const password = document.querySelector('#password');
-
-    togglePassword.addEventListener('click', function (e) {
-        // toggle the type attribute
+    togglePassword.addEventListener('click', function() {
         const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
         password.setAttribute('type', type);
-        // toggle the eye / eye slash icon
         this.classList.toggle('fa-eye-slash');
-        this.classList.toggle('fa-eye');
-        // toggle the title
-        this.title = type === 'password' ? 'Show Password' : 'Hide Password';
     });
 </script>
 

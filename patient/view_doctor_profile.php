@@ -67,17 +67,10 @@ if (!$doctor) {
         style="display: flex; flex-direction: column; md:flex-row; gap: 30px; align-items: start; margin-bottom: 30px;">
         <div style="flex-shrink: 0; text-align: center; width: 100%; max-width: 200px; margin: 0 auto;">
             <?php
-            $avatar_url = !empty($doctor['profile_pic']) ? BASE_URL . $doctor['profile_pic'] : '';
-            if ($avatar_url):
-                ?>
-                <img src="<?php echo $avatar_url; ?>" alt="Profile"
-                    style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary-soft);">
-            <?php else: ?>
-                <div
-                    style="width: 150px; height: 150px; background: var(--primary-soft); color: var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 4rem; margin: 0 auto;">
-                    <?php echo strtoupper(substr($doctor['fullname'], 0, 1)); ?>
-                </div>
-            <?php endif; ?>
+            $avatar_url = !empty($doctor['profile_pic']) && $doctor['profile_pic'] != 'default_user.png' ? BASE_URL . 'assets/uploads/profile_pics/' . $doctor['profile_pic'] : 'https://ui-avatars.com/api/?name=' . urlencode($doctor['fullname']) . '&background=random&color=fff&size=200';
+            ?>
+            <img src="<?php echo $avatar_url; ?>" alt="Profile"
+                style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary-soft);" onerror="this.src='https://ui-avatars.com/api/?name=<?php echo urlencode($doctor['fullname']); ?>&background=random&color=fff&size=200'">
 
             <div style="margin-top: 15px;">
                 <span
